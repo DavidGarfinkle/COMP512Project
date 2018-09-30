@@ -2,46 +2,62 @@ package Server.Common;
 
 import Server.Interface.*;
 
-import java.util.*;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.rmi.RemoteException;
+import java.rmi.NotBoundException;
+
+import java.util.*;
 import java.io.*;
 
 public class Middleware implements IResourceManager{
 
-  private static String s_flightServer = "FlightServer";
-  private static String s_carServer = "CarServer";
-  private static String s_roomServer = "RoomServer";
-  private static String s_customerServer = "CustomerServer";
+    // test with one resource manager
+    private static String s_resourceServer = "ResourceServer";
+    private static String s_resourceServerName = "Resources";
+    IResourceManager m_resourceManager = null;
 
-  private static String s_flightServerName = "Flight";
-  private static String s_carServerName = "Car";
-  private static String s_roomServerName = "Room";
-  private static String s_customerServerName = "Customer";
+    private static String s_flightServer = "FlightServer";
+    private static String s_carServer = "CarServer";
+    private static String s_roomServer = "RoomServer";
+    private static String s_customerServer = "CustomerServer";
 
-  IResourceManager m_flightResourceManager = null;
-  IResourceManager m_carResourceManager = null;
-  IResourceManager m_roomResourceManager = null;
-  IResourceManager m_customerResourceManager = null;
+    private static String s_flightServerName = "Flight";
+    private static String s_carServerName = "Car";
+    private static String s_roomServerName = "Room";
+    private static String s_customerServerName = "Customer";
 
-  private static int s_serverPort = 1099;
-  private static String s_rmiPrefix = "group28";
+    IResourceManager m_flightResourceManager = null;
+    IResourceManager m_carResourceManager = null;
+    IResourceManager m_roomResourceManager = null;
+    IResourceManager m_customerResourceManager = null;
+
+    private static int s_serverPort = 1099;
+    private static String s_rmiPrefix = "group28";
   
-  public Middleware(flightServer, carServer, roomServer, customerServer){
-    s_flightServer = flightServer;
-    s_carServer = carServer;
-    s_roomServer = roomServer;
-    s_customerServer = customerServer;
-  }
+    public Middleware(String flightServer, String carServer, String roomServer, String customerServer) {
+        s_flightServer = flightServer;
+        s_carServer = carServer;
+        s_roomServer = roomServer;
+        s_customerServer = customerServer;
+        connectServers();
+    }
 
-  public void connectServers()
+    // test with one resource manager
+    public Middleware(String resourceServer) {
+        s_resourceServer = resourceServer;
+        connectServer(s_resourceServer, s_serverPort, s_resourceServerName, m_resourceManager);
+    }
+
+    public void connectServers()
 	{
-    connectServer(s_flightServer, s_serverPort, s_flightServerName, m_flightResourceManager);
-    connectServer(s_carServer, s_serverPort, s_carServerName, m_carResourceManager);
-		connectServer(s_roomServer, s_serverPort, s_roomServerName, m_roomResourceManager);
-    connectServer(s_customerServer, s_serverPort, s_customerServerName, m_customerResourceManager);
+        connectServer(s_flightServer, s_serverPort, s_flightServerName, m_flightResourceManager);
+        connectServer(s_carServer, s_serverPort, s_carServerName, m_carResourceManager);
+        connectServer(s_roomServer, s_serverPort, s_roomServerName, m_roomResourceManager);
+        connectServer(s_customerServer, s_serverPort, s_customerServerName, m_customerResourceManager);
 	}
 
-	public void connectServer(String server, int port, String name, IResourceManager resourceManager)
+    public void connectServer(String server, int port, String name, IResourceManager resourceManager)
 	{
 		try {
 			boolean first = true;
@@ -79,7 +95,9 @@ public class Middleware implements IResourceManager{
      * @return Success
      */
     public boolean addFlight(int id, int flightNum, int flightSeats, int flightPrice) 
-	throws RemoteException; 
+	throws RemoteException {
+        return false;
+    }
     
     /**
      * Add car at a location.
@@ -90,7 +108,9 @@ public class Middleware implements IResourceManager{
      * @return Success
      */
     public boolean addCars(int id, String location, int numCars, int price) 
-	throws RemoteException; 
+	throws RemoteException {
+        return false;
+    }
    
     /**
      * Add room at a location.
@@ -101,7 +121,9 @@ public class Middleware implements IResourceManager{
      * @return Success
      */
     public boolean addRooms(int id, String location, int numRooms, int price) 
-	throws RemoteException; 			    
+	throws RemoteException {
+        return false;
+    }			    
 			    
     /**
      * Add customer.
@@ -109,7 +131,9 @@ public class Middleware implements IResourceManager{
      * @return Unique customer identifier
      */
     public int newCustomer(int id) 
-	throws RemoteException; 
+	throws RemoteException {
+        return 0;
+    }
     
     /**
      * Add customer with id.
@@ -117,7 +141,9 @@ public class Middleware implements IResourceManager{
      * @return Success
      */
     public boolean newCustomer(int id, int cid)
-        throws RemoteException;
+    throws RemoteException {
+        return false;
+    }
 
     /**
      * Delete the flight.
@@ -128,7 +154,9 @@ public class Middleware implements IResourceManager{
      * @return Success
      */   
     public boolean deleteFlight(int id, int flightNum) 
-	throws RemoteException; 
+	throws RemoteException {
+        return false;
+    }
     
     /**
      * Delete all cars at a location.
@@ -138,7 +166,9 @@ public class Middleware implements IResourceManager{
      * @return Success
      */		    
     public boolean deleteCars(int id, String location) 
-	throws RemoteException; 
+	throws RemoteException {
+        return false;
+    }
 
     /**
      * Delete all rooms at a location.
@@ -148,7 +178,9 @@ public class Middleware implements IResourceManager{
      * @return Success
      */
     public boolean deleteRooms(int id, String location) 
-	throws RemoteException; 
+	throws RemoteException {
+        return false;
+    }
     
     /**
      * Delete a customer and associated reservations.
@@ -156,7 +188,9 @@ public class Middleware implements IResourceManager{
      * @return Success
      */
     public boolean deleteCustomer(int id, int customerID) 
-	throws RemoteException; 
+	throws RemoteException {
+        return false;
+    }
 
     /**
      * Query the status of a flight.
@@ -164,7 +198,9 @@ public class Middleware implements IResourceManager{
      * @return Number of empty seats
      */
     public int queryFlight(int id, int flightNumber) 
-	throws RemoteException; 
+	throws RemoteException {
+        return 0;
+    }
 
     /**
      * Query the status of a car location.
@@ -172,7 +208,9 @@ public class Middleware implements IResourceManager{
      * @return Number of available cars at this location
      */
     public int queryCars(int id, String location) 
-	throws RemoteException; 
+	throws RemoteException {
+        return 0;
+    }
 
     /**
      * Query the status of a room location.
@@ -180,7 +218,9 @@ public class Middleware implements IResourceManager{
      * @return Number of available rooms at this location
      */
     public int queryRooms(int id, String location) 
-	throws RemoteException; 
+	throws RemoteException {
+        return 0;
+    }
 
     /**
      * Query the customer reservations.
@@ -188,7 +228,9 @@ public class Middleware implements IResourceManager{
      * @return A formatted bill for the customer
      */
     public String queryCustomerInfo(int id, int customerID) 
-	throws RemoteException; 
+	throws RemoteException {
+        return null;
+    }
     
     /**
      * Query the status of a flight.
@@ -196,7 +238,9 @@ public class Middleware implements IResourceManager{
      * @return Price of a seat in this flight
      */
     public int queryFlightPrice(int id, int flightNumber) 
-	throws RemoteException; 
+	throws RemoteException {
+        return 0;
+    }
 
     /**
      * Query the status of a car location.
@@ -204,7 +248,9 @@ public class Middleware implements IResourceManager{
      * @return Price of car
      */
     public int queryCarsPrice(int id, String location) 
-	throws RemoteException; 
+	throws RemoteException {
+        return 0;
+    }
 
     /**
      * Query the status of a room location.
@@ -212,7 +258,9 @@ public class Middleware implements IResourceManager{
      * @return Price of a room
      */
     public int queryRoomsPrice(int id, String location) 
-	throws RemoteException; 
+	throws RemoteException {
+        return 0;
+    }
 
     /**
      * Reserve a seat on this flight.
@@ -220,7 +268,9 @@ public class Middleware implements IResourceManager{
      * @return Success
      */
     public boolean reserveFlight(int id, int customerID, int flightNumber) 
-	throws RemoteException; 
+	throws RemoteException {
+        return false;
+    }
 
     /**
      * Reserve a car at this location.
@@ -228,7 +278,9 @@ public class Middleware implements IResourceManager{
      * @return Success
      */
     public boolean reserveCar(int id, int customerID, String location) 
-	throws RemoteException; 
+	throws RemoteException {
+        return false;
+    }
 
     /**
      * Reserve a room at this location.
@@ -236,7 +288,9 @@ public class Middleware implements IResourceManager{
      * @return Success
      */
     public boolean reserveRoom(int id, int customerID, String location) 
-	throws RemoteException; 
+	throws RemoteException {
+        return false;
+    }
 
     /**
      * Reserve a bundle for the trip.
@@ -244,7 +298,9 @@ public class Middleware implements IResourceManager{
      * @return Success
      */
     public boolean bundle(int id, int customerID, Vector<String> flightNumbers, String location, boolean car, boolean room)
-	throws RemoteException; 
+	throws RemoteException {
+        return false;
+    }
 
     /**
      * Convenience for probing the resource manager.
@@ -252,6 +308,8 @@ public class Middleware implements IResourceManager{
      * @return Name
      */
     public String getName()
-        throws RemoteException;
+    throws RemoteException {
+        return null;
+    }
 
 }
