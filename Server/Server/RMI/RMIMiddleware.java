@@ -60,36 +60,21 @@ public class RMIMiddleware extends Middleware {
 					l_registry = LocateRegistry.getRegistry(1099);
 				}
 				final Registry registry = l_registry;
-				registry.rebind(s_rmiPrefix + s_flightServerName, middleware);
-				// registry.rebind(s_rmiPrefix + s_carServerName, middleware);
-				// registry.rebind(s_rmiPrefix + s_roomServerName, middleware);
-				// registry.rebind(s_rmiPrefix + s_customerServerName, middleware);
+				registry.rebind(s_rmiPrefix + s_resourceServerName, middleware);
 
 				Runtime.getRuntime().addShutdownHook(new Thread() {
 					public void run() {
 						try {
-							registry.unbind(s_rmiPrefix + s_flightServerName);
-							System.out.println("'" + s_flightServerName + "' resource manager unbound");
-							registry.unbind(s_rmiPrefix + s_carServerName);
-							System.out.println("'" + s_carServerName + "' resource manager unbound");
-							registry.unbind(s_rmiPrefix + s_roomServerName);
-							System.out.println("'" + s_roomServerName + "' resource manager unbound");
-							registry.unbind(s_rmiPrefix + s_customerServerName);
-							System.out.println("'" + s_customerServerName + "' resource manager unbound");
+							registry.unbind(s_rmiPrefix + s_resourceServerName);
+							System.out.println("'" + s_resourceServerName + "' resource manager unbound");
 						} catch (Exception e) {
 							System.err.println((char) 27 + "[31;1mServer exception: " + (char) 27 + "[0mUncaught exception");
 							e.printStackTrace();
 						}
 					}
 				});
-				System.out.println("'" + s_flightServerName + "' resource manager server ready and bound to '" + s_rmiPrefix +
-					s_flightServerName + "'");
-				System.out.println("'" + s_carServerName + "' resource manager server ready and bound to '" + s_rmiPrefix +
-					s_carServerName + "'");
-				System.out.println("'" + s_roomServerName + "' resource manager server ready and bound to '" + s_rmiPrefix +
-					s_roomServerName + "'");
-				System.out.println("'" + s_customerServerName + "' resource manager server ready and bound to '" + s_rmiPrefix +
-					s_customerServerName + "'");
+				System.out.println("'" + s_resourceServerName + "' resource manager server ready and bound to '" + s_rmiPrefix +
+				s_resourceServerName + "'");
 			} catch (Exception e) {
 				System.err.println((char) 27 + "[31;1mServer exception: " + (char) 27 + "[0mUncaught exception");
 				e.printStackTrace();

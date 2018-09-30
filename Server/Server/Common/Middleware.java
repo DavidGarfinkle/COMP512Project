@@ -46,25 +46,38 @@ public class Middleware implements IResourceManager{
     // test with one resource manager
     public Middleware(String resourceServer) {
         s_resourceServer = resourceServer;
-        connectServer(s_resourceServer, s_serverPort, s_resourceServerName, m_resourceManager);
+        connectServer(s_resourceServer, s_serverPort, s_resourceServerName);
     }
 
     public void connectServers()
 	{
-        connectServer(s_flightServer, s_serverPort, s_flightServerName, m_flightResourceManager);
-        connectServer(s_carServer, s_serverPort, s_carServerName, m_carResourceManager);
-        connectServer(s_roomServer, s_serverPort, s_roomServerName, m_roomResourceManager);
-        connectServer(s_customerServer, s_serverPort, s_customerServerName, m_customerResourceManager);
+        connectServer(s_flightServer, s_serverPort, s_flightServerName);
+        connectServer(s_carServer, s_serverPort, s_carServerName);
+        connectServer(s_roomServer, s_serverPort, s_roomServerName);
+        connectServer(s_customerServer, s_serverPort, s_customerServerName);
 	}
 
-    public void connectServer(String server, int port, String name, IResourceManager resourceManager)
+    public void connectServer(String server, int port, String name)
 	{
 		try {
 			boolean first = true;
 			while (true) {
 				try {
-					Registry registry = LocateRegistry.getRegistry(server, port);
-					resourceManager = (IResourceManager)registry.lookup(s_rmiPrefix + name);
+                    Registry registry = LocateRegistry.getRegistry(server, port);
+                    switch (name){
+                        case "Resources": {
+                            m_resourceManager = (IResourceManager)registry.lookup(s_rmiPrefix + name);
+                        }
+                        case "Car": {
+                            m_carResourceManager = (IResourceManager)registry.lookup(s_rmiPrefix + name);
+                        }
+                        case "Room": {
+                            m_roomResourceManager = (IResourceManager)registry.lookup(s_rmiPrefix + name);
+                        }
+                        case "Customer": {
+                            m_customerResourceManager = (IResourceManager)registry.lookup(s_rmiPrefix + name);
+                        }
+                    }
 					System.out.println("Connected to '" + name + "' server [" + server + ":" + port + "/" + s_rmiPrefix + name + "]");
 					break;
 				}
@@ -84,78 +97,40 @@ public class Middleware implements IResourceManager{
 		}
 	}
 
-  /**
-     * Add seats to a flight.
-     *
-     * In general this will be used to create a new
-     * flight, but it should be possible to add seats to an existing flight.
-     * Adding to an existing flight should overwrite the current price of the
-     * available seats.
-     *
-     * @return Success
-     */
-    public boolean addFlight(int id, int flightNum, int flightSeats, int flightPrice) 
+    public boolean addFlight(int xid, int flightNum, int flightSeats, int flightPrice) 
 	throws RemoteException {
-        return false;
+		Trace.info("RM::addFlight(" + xid + ", " + flightNum + ", " + flightSeats + ", $" + flightPrice + ") called");
+        return m_resourceManager.addFlight(xid, flightNum, flightSeats, flightPrice);
     }
     
-    /**
-     * Add car at a location.
-     *
-     * This should look a lot like addFlight, only keyed on a string location
-     * instead of a flight number.
-     *
-     * @return Success
-     */
-    public boolean addCars(int id, String location, int numCars, int price) 
+    public boolean addCars(int xid, String location, int numCars, int price) 
 	throws RemoteException {
-        return false;
+		Trace.info("RM::addCars(" + xid + ", " + location + ", " + count + ", $" + price + ") called");
+        return m_resourceManager.addCars(xid, location, numCars, price);
     }
    
-    /**
-     * Add room at a location.
-     *
-     * This should look a lot like addFlight, only keyed on a string location
-     * instead of a flight number.
-     *
-     * @return Success
-     */
-    public boolean addRooms(int id, String location, int numRooms, int price) 
+    public boolean addRooms(int xid, String location, int numRooms, int price) 
 	throws RemoteException {
-        return false;
+        Trace.info("RM::addRooms(" + xid + ", " + location + ", " + count + ", $" + price + ") called");
+        return m_resourceManager.addRooms(xid, location, numRooms, price);
     }			    
 			    
-    /**
-     * Add customer.
-     *
-     * @return Unique customer identifier
-     */
-    public int newCustomer(int id) 
+    public int newCustomer(int xid) 
 	throws RemoteException {
-        return 0;
+        Trace.info("RM::newCustomer(" + xid + ") called");
+        return m_resourceManager.newCustomer(xid);
     }
     
-    /**
-     * Add customer with id.
-     *
-     * @return Success
-     */
     public boolean newCustomer(int id, int cid)
     throws RemoteException {
-        return false;
+        Trace.info("RM::newCustomer(" + xid + ", " + cid + ") called");
+        return m_resourceManager.newCustomer(id, cid);
     }
 
-    /**
-     * Delete the flight.
-     *
-     * deleteFlight implies whole deletion of the flight. If there is a
-     * reservation on the flight, then the flight cannot be deleted
-     *
-     * @return Success
-     */   
     public boolean deleteFlight(int id, int flightNum) 
 	throws RemoteException {
-        return false;
+        Trace.info("RM::deleteFlight(" + id + ", " + flightNum + ") called");
+        return m_resourceManager.deleteFlight(id, flightNum);
     }
     
     /**
