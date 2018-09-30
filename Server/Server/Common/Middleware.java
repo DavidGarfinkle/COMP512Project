@@ -270,10 +270,25 @@ public class Middleware implements IResourceManager{
     /**
      * Reserve a bundle for the trip.
      *
+	 * //TODO unreserveItem(): If any one of the individual reservations within the bundle fails, no changes will occur.
+     *
      * @return Success
      */
     public boolean bundle(int id, int customerID, Vector<String> flightNumbers, String location, boolean car, boolean room)
 	throws RemoteException {
+
+        if (car) {
+            reserveCar(id, customerId, location);
+        }
+
+        if (room) {
+            reserveRoom(id, customerId, location);
+        }
+
+        for (int flightNum : flightNumbers) {
+            reserveFlight(id, customerId, flightNum);
+        }
+
         return false;
     }
 
