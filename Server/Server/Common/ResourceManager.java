@@ -296,7 +296,7 @@ public class ResourceManager implements IResourceManager
 
 	public int newCustomer(int xid) throws RemoteException
 	{
-        	Trace.info("RM::newCustomer(" + xid + ") called");
+					Trace.info("RM::newCustomer(" + xid + ") called");
 		// Generate a globally unique ID for the new customer
 		int cid = Integer.parseInt(String.valueOf(xid) +
 			String.valueOf(Calendar.getInstance().get(Calendar.MILLISECOND)) +
@@ -337,7 +337,7 @@ public class ResourceManager implements IResourceManager
 		else
 		{            
 			// Increase the reserved numbers of all reservable items which the customer reserved. 
- 			RMHashMap reservations = customer.getReservations();
+			 RMHashMap reservations = customer.getReservations();
 			for (String reservedKey : reservations.keySet())
 			{        
 				ReservedItem reserveditem = customer.getReservedItem(reservedKey);
