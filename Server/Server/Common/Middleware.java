@@ -97,21 +97,21 @@ public class Middleware implements IResourceManager{
 		}
 	}
 
-    public boolean addFlight(int xid, int flightNum, int flightSeats, int flightPrice) 
+    public boolean addFlight(int xid, int flightnumber, int flightSeats, int flightPrice) 
 	throws RemoteException {
-		Trace.info("RM::addFlight(" + xid + ", " + flightNum + ", " + flightSeats + ", $" + flightPrice + ") called");
-        return m_resourceManager.addFlight(xid, flightNum, flightSeats, flightPrice);
+		Trace.info("RM::addFlight(" + xid + ", " + flightnumber + ", " + flightSeats + ", $" + flightPrice + ") called");
+        return m_resourceManager.addFlight(xid, flightnumber, flightSeats, flightPrice);
     }
     
     public boolean addCars(int xid, String location, int numCars, int price) 
 	throws RemoteException {
-		Trace.info("RM::addCars(" + xid + ", " + location + ", " + count + ", $" + price + ") called");
+		Trace.info("RM::addCars(" + xid + ", " + location + ", " + numCars + ", $" + price + ") called");
         return m_resourceManager.addCars(xid, location, numCars, price);
     }
    
     public boolean addRooms(int xid, String location, int numRooms, int price) 
 	throws RemoteException {
-        Trace.info("RM::addRooms(" + xid + ", " + location + ", " + count + ", $" + price + ") called");
+        Trace.info("RM::addRooms(" + xid + ", " + location + ", " + numRooms + ", $" + price + ") called");
         return m_resourceManager.addRooms(xid, location, numRooms, price);
     }			    
 			    
@@ -121,170 +121,108 @@ public class Middleware implements IResourceManager{
         return m_resourceManager.newCustomer(xid);
     }
     
-    public boolean newCustomer(int id, int cid)
+    public boolean newCustomer(int xid, int cid)
     throws RemoteException {
         Trace.info("RM::newCustomer(" + xid + ", " + cid + ") called");
-        return m_resourceManager.newCustomer(id, cid);
+        return m_resourceManager.newCustomer(xid, cid);
     }
 
-    public boolean deleteFlight(int id, int flightNum) 
+    public boolean deleteFlight(int xid, int flightnumber) 
 	throws RemoteException {
-        Trace.info("RM::deleteFlight(" + id + ", " + flightNum + ") called");
-        return m_resourceManager.deleteFlight(id, flightNum);
+        Trace.info("RM::deleteFlight(" + xid + ", " + flightnumber + ") called");
+        return m_resourceManager.deleteFlight(xid, flightnumber);
     }
     
-    /**
-     * Delete all cars at a location.
-     *
-     * It may not succeed if there are reservations for this location
-     *
-     * @return Success
-     */		    
-    public boolean deleteCars(int id, String location) 
+    public boolean deleteCars(int xid, String location) 
 	throws RemoteException {
-        return false;
+        Trace.info("RM::deleteCars(" + xid + ", " + location + ") called");
+        return m_resourceManager.deleteCars(xid, location);
     }
 
-    /**
-     * Delete all rooms at a location.
-     *
-     * It may not succeed if there are reservations for this location.
-     *
-     * @return Success
-     */
-    public boolean deleteRooms(int id, String location) 
+    public boolean deleteRooms(int xid, String location) 
 	throws RemoteException {
-        return false;
+        Trace.info("RM::deleteRooms(" + xid + ", " + location + ") called");
+        return m_resourceManager.deleteRooms(xid, location);
     }
     
-    /**
-     * Delete a customer and associated reservations.
-     *
-     * @return Success
-     */
-    public boolean deleteCustomer(int id, int customerID) 
+    public boolean deleteCustomer(int xid, int cid) 
 	throws RemoteException {
-        return false;
+        Trace.info("RM::deleteCustomer(" + xid + ", " + cid + ") called");
+        return m_resourceManager.deleteCustomer(xid, cid);
     }
 
-    /**
-     * Query the status of a flight.
-     *
-     * @return Number of empty seats
-     */
-    public int queryFlight(int id, int flightNumber) 
+    public int queryFlight(int xid, int flightNumber) 
 	throws RemoteException {
-        return 0;
+        Trace.info("RM::queryFlight(" + xid + ", " + flightNumber + ") called");
+        return m_resourceManager.queryFlight(xid, flightNumber);
     }
 
-    /**
-     * Query the status of a car location.
-     *
-     * @return Number of available cars at this location
-     */
-    public int queryCars(int id, String location) 
+    public int queryCars(int xid, String location) 
 	throws RemoteException {
-        return 0;
+        Trace.info("RM::queryCars(" + xid + ", " + location + ") called");
+        return m_resourceManager.queryCars(xid, location);
     }
 
-    /**
-     * Query the status of a room location.
-     *
-     * @return Number of available rooms at this location
-     */
-    public int queryRooms(int id, String location) 
+    public int queryRooms(int xid, String location) 
 	throws RemoteException {
-        return 0;
+        Trace.info("RM::queryRooms(" + xid + ", " + location + ") called");
+        return m_resourceManager.queryRooms(xid, location);
     }
 
-    /**
-     * Query the customer reservations.
-     *
-     * @return A formatted bill for the customer
-     */
-    public String queryCustomerInfo(int id, int customerID) 
+    public String queryCustomerInfo(int xid, int cid) 
 	throws RemoteException {
-        return null;
+        Trace.info("RM::queryCustomerInfo(" + xid + ", " + cid + ") called");
+        return m_resourceManager.queryCustomerInfo(xid, cid);
     }
     
-    /**
-     * Query the status of a flight.
-     *
-     * @return Price of a seat in this flight
-     */
-    public int queryFlightPrice(int id, int flightNumber) 
+    public int queryFlightPrice(int xid, int flightNumber) 
 	throws RemoteException {
-        return 0;
+        Trace.info("RM::queryFlightPrice(" + xid + ", " + flightNumber + ") called");
+        return m_resourceManager.queryFlightPrice(xid, flightNumber);
     }
 
-    /**
-     * Query the status of a car location.
-     *
-     * @return Price of car
-     */
-    public int queryCarsPrice(int id, String location) 
+    public int queryCarsPrice(int xid, String location) 
 	throws RemoteException {
-        return 0;
+        Trace.info("RM::queryCarsPrice(" + xid + ", " + location + ") called");
+        return m_resourceManager.queryCarsPrice(xid, location);
     }
 
-    /**
-     * Query the status of a room location.
-     *
-     * @return Price of a room
-     */
-    public int queryRoomsPrice(int id, String location) 
+    public int queryRoomsPrice(int xid, String location) 
 	throws RemoteException {
-        return 0;
+        Trace.info("RM::queryRoomsPrice(" + xid + ", " + location + ") called");
+        return m_resourceManager.queryRoomsPrice(xid, location);
     }
 
-    /**
-     * Reserve a seat on this flight.
-     *
-     * @return Success
-     */
-    public boolean reserveFlight(int id, int customerID, int flightNumber) 
+    public boolean reserveFlight(int xid, int cid, int flightNumber) 
 	throws RemoteException {
-        return false;
+        Trace.info("RM::reserveFlight(" + xid + ", " + cid + ", " + flightNumber + ") called");
+        return m_resourceManager.reserveFlight(xid, cid, flightNumber);
     }
 
-    /**
-     * Reserve a car at this location.
-     *
-     * @return Success
-     */
-    public boolean reserveCar(int id, int customerID, String location) 
+    public boolean reserveCar(int xid, int cid, String location) 
 	throws RemoteException {
-        return false;
+        Trace.info("RM::reserveCar(" + xid + ", " + cid + ", " + location + ") called");
+        return m_resourceManager.reserveCar(xid, cid, location);
     }
 
-    /**
-     * Reserve a room at this location.
-     *
-     * @return Success
-     */
-    public boolean reserveRoom(int id, int customerID, String location) 
+    public boolean reserveRoom(int xid, int cid, String location) 
 	throws RemoteException {
-        return false;
+        Trace.info("RM::reserveRoom(" + xid + ", " + cid + ", " + location + ") called");
+        return m_resourceManager.reserveRoom(xid, cid, location);
     }
 
-    /**
-     * Reserve a bundle for the trip.
-     *
-     * @return Success
-     */
-    public boolean bundle(int id, int customerID, Vector<String> flightNumbers, String location, boolean car, boolean room)
+    public boolean bundle(int xid, int cid, Vector<String> flightNumbers, String location, boolean car, boolean room)
 	throws RemoteException {
-        return false;
+        String flights = "";
+        for (String flightNumber : flightNumbers) {
+            flights = flights + flightNumber + " ";
+        } 
+        Trace.info("RM::bundle(" + xid + ", " + cid + ", " + flights + ", " + location + ", " + car + ", " + room + ") called");
+        return m_resourceManager.reserveRoom(xid, cid, location);
     }
 
-    /**
-     * Convenience for probing the resource manager.
-     *
-     * @return Name
-     */
     public String getName()
     throws RemoteException {
         return null;
     }
-
 }
