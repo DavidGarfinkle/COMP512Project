@@ -8,30 +8,30 @@ import java.rmi.NotBoundException;
 import java.util.*;
 import java.io.*;
 
-public class Middleware implements IResourceManager {
+public abstract class Middleware implements IResourceManager {
 
   // test with one resource manager
-  private static String s_resourceServer = "ResourceServer";
-  private static String s_resourceServerName = "Resources";
-  IResourceManager m_resourceManager = null;
+  protected String s_resourceServer = "ResourceServer";
+  protected String s_resourceServerName = "Resources";
+  protected IResourceManager m_resourceManager = null;
 
-  private static String s_flightServer = "FlightServer";
-  private static String s_carServer = "CarServer";
-  private static String s_roomServer = "RoomServer";
-  private static String s_customerServer = "CustomerServer";
+  protected String s_flightServer = "FlightServer";
+  protected String s_carServer = "CarServer";
+  protected String s_roomServer = "RoomServer";
+  protected String s_customerServer = "CustomerServer";
 
-  private static String s_flightServerName = "Flight";
-  private static String s_carServerName = "Car";
-  private static String s_roomServerName = "Room";
-  private static String s_customerServerName = "Customer";
+  protected String s_flightServerName = "Flight";
+  protected String s_carServerName = "Car";
+  protected String s_roomServerName = "Room";
+  protected String s_customerServerName = "Customer";
 
-  IResourceManager m_flightResourceManager = null;
-  IResourceManager m_carResourceManager = null;
-  IResourceManager m_roomResourceManager = null;
-  IResourceManager m_customerResourceManager = null;
+  protected IResourceManager m_flightResourceManager = null;
+  protected IResourceManager m_carResourceManager = null;
+  protected IResourceManager m_roomResourceManager = null;
+  protected IResourceManager m_customerResourceManager = null;
 
-  private static int s_serverPort = 1099;
-  private static String s_rmiPrefix = "group28";
+  protected int s_serverPort = 1099;
+  protected String s_rmiPrefix = "group28";
 
   public Middleware(String flightServer, String carServer, String roomServer,
 	  String customerServer) {
@@ -39,65 +39,14 @@ public class Middleware implements IResourceManager {
 	s_carServer = carServer;
 	s_roomServer = roomServer;
 	s_customerServer = customerServer;
-	connectServers();
   }
 
   // test with one resource manager
   public Middleware(String resourceServer) {
 	s_resourceServer = resourceServer;
-	connectServer(s_resourceServer, s_serverPort, s_resourceServerName);
   }
 
-  public void connectServers() {
-	connectServer(s_flightServer, s_serverPort, s_flightServerName);
-	connectServer(s_carServer, s_serverPort, s_carServerName);
-	connectServer(s_roomServer, s_serverPort, s_roomServerName);
-	connectServer(s_customerServer, s_serverPort, s_customerServerName);
-  }
-
-  public void connectServer(String server, int port, String name) {
-	try {
-	  boolean first = true;
-	  while (true) {
-		try {
-		  Registry registry = LocateRegistry.getRegistry(server, port);
-		  switch (name) {
-			case "Resources": {
-			  m_resourceManager =
-				  (IResourceManager) registry.lookup(s_rmiPrefix + name);
-			}
-			case "Car": {
-			  m_carResourceManager =
-				  (IResourceManager) registry.lookup(s_rmiPrefix + name);
-			}
-			case "Room": {
-			  m_roomResourceManager =
-				  (IResourceManager) registry.lookup(s_rmiPrefix + name);
-			}
-			case "Customer": {
-			  m_customerResourceManager =
-				  (IResourceManager) registry.lookup(s_rmiPrefix + name);
-			}
-		  }
-		  System.out.println("Connected to '" + name + "' server [" + server + ":" + port
-			  + "/" + s_rmiPrefix + name + "]");
-		  break;
-		} catch (NotBoundException | RemoteException e) {
-		  if (first) {
-			System.out.println("Waiting for '" + name + "' server [" + server + ":"
-				+ port + "/" + s_rmiPrefix + name + "]");
-			first = false;
-		  }
-		}
-		Thread.sleep(500);
-	  }
-	} catch (Exception e) {
-	  System.err.println(
-		  (char) 27 + "[31;1mServer exception: " + (char) 27 + "[0mUncaught exception");
-	  e.printStackTrace();
-	  System.exit(1);
-	}
-  }
+  public abstract void connectServers();
 
   public boolean addFlight(int xid, int flightnumber, int flightSeats, int flightPrice)
 	  throws RemoteException {
