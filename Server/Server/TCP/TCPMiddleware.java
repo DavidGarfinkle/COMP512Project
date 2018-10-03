@@ -1,14 +1,10 @@
+package Server.TCP;
+
 import java.io.*;
 import java.net.*;
- 
-/**
- * This program demonstrates a simple TCP/IP socket server that echoes every
- * message from the client in reversed form.
- * This server is multi-threaded.
- *
- * @author www.codejava.net
- */
-public class ReverseServer {
+import Server.Common.*;
+
+public class TCPMiddleware {
  
     public static void main(String[] args) {
         if (args.length < 1) return;

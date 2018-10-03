@@ -1,13 +1,11 @@
+package Client;
+
 import java.net.*;
 import java.io.*;
- 
-/**
- * This program demonstrates a simple TCP/IP socket client.
- *
- * @author www.codejava.net
- */
-public class TimeClient {
- 
+import Server.Common.*;
+
+public class TCPClient {
+
     public static void main(String[] args) {
         if (args.length < 2) return;
  
