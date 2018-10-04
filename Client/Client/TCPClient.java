@@ -1,16 +1,24 @@
 package Client;
 
+import Server.Interface.*;
+
 import java.net.*;
+import java.util.*;
 import java.io.*;
-import Server.Common.*;
 
 public class TCPClient {
 
+    private static String hostname = "localhost";
+    private static int port = 1098;
     public static void main(String[] args) {
-        if (args.length < 2) return;
- 
-        String hostname = args[0];
-        int port = Integer.parseInt(args[1]);
+        if (args.length < 1) {
+            return;
+        } else if (args.length < 2){
+            port = Integer.parseInt(args[0]);
+        } else {
+            hostname = args[0];
+            port = Integer.parseInt(args[1]);
+        }
  
         try (Socket socket = new Socket(hostname, port)) {
  
@@ -20,7 +28,6 @@ public class TCPClient {
             String time = reader.readLine();
  
             System.out.println(time);
- 
  
         } catch (UnknownHostException ex) {
  

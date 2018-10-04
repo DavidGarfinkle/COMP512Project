@@ -5,7 +5,7 @@ import java.net.*;
 import Server.Common.*;
 import java.util.*;
 
-public interface ITCPResourceManager extends Thread 
+public interface ITCPResourceManager 
 {
     /**
      * Add seats to a flight.
@@ -170,6 +170,5 @@ public interface ITCPResourceManager extends Thread
      *
      * @return Name
      */
-    public String getName()
-        ;
+    public String getName();
 }
