@@ -149,18 +149,22 @@ public abstract class Middleware implements IResourceManager {
 	return m_resourceManager.reserveRoom(xid, cid, location);
   }
 
-  public boolean bundle(int xid, int cid, Vector<String> flightNumbers, String location,
-	  boolean car, boolean room) throws RemoteException {
-	String flights = "";
-	for (String flightNumber : flightNumbers) {
-	  flights = flights + flightNumber + " ";
-	}
-	Trace.info("RM::bundle(" + xid + ", " + cid + ", " + flights + ", " + location + ", " + car
+  public boolean bundle(int id, int customerID, Vector<String> flightNumbers, String location, boolean car, boolean room)
+	throws RemoteException {
+    Trace.info("RM::bundle(" + xid + ", " + customerID + ", " + flights + ", " + location + ", " + car
 		+ ", " + room + ") called");
-	return m_resourceManager.reserveRoom(xid, cid, location);
-  }
+        if (car) {
+            m_resourceManager.reserveCar(id, customerId, location);
+        }
 
-  public String getName() throws RemoteException {
-	return null;
-  }
+        if (room) {
+            m_resourceManager.reserveRoom(id, customerId, location);
+        }
+
+        for (int flightNum : flightNumbers) {
+            m_resourceManager.reserveFlight(id, customerId, flightNum);
+        }
+
+        return false;
+    }
 }
