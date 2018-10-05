@@ -314,7 +314,10 @@ public class ResourceManagerThread extends Thread {
 
 				String price = Integer.toString(queryFlightPrice(id, flightNum));
 				System.out.println("Price of a seat: " + price);
-				return price;
+                if (true){
+                    return price;
+                }
+                break;
 			}
 			case QueryCarsPrice: {
 				checkArgumentsCount(3, arguments.size());
@@ -327,7 +330,10 @@ public class ResourceManagerThread extends Thread {
 
 				String price = Integer.toString(queryCarsPrice(id, location));
 				System.out.println("Price of cars at this location: " + price);
-				return price;
+                if (true) {
+                    return price;
+                }
+                break;
 			}
 			case QueryRoomsPrice: {
 				checkArgumentsCount(3, arguments.size());
@@ -340,7 +346,10 @@ public class ResourceManagerThread extends Thread {
 
 				String price = Integer.toString(queryRoomsPrice(id, location));
 				System.out.println("Price of rooms at this location: " + price);
-				return price;
+                if (true) {
+                    return price;
+                }
+                break;
 			}
 			case ReserveFlight: {
 				checkArgumentsCount(4, arguments.size());
@@ -423,8 +432,10 @@ public class ResourceManagerThread extends Thread {
 					flightNumbers.addElement(arguments.elementAt(3+i));
 				}
 				String location = arguments.elementAt(arguments.size()-3);
-				boolean car = toBoolean(arguments.elementAt(arguments.size()-2));
-				boolean room = toBoolean(arguments.elementAt(arguments.size()-1));
+				//boolean car = toBoolean(arguments.elementAt(arguments.size()-2));
+				//boolean room = toBoolean(arguments.elementAt(arguments.size()-1));
+				String car = arguments.elementAt(arguments.size()-2).toLowerCase();
+				String room = arguments.elementAt(arguments.size()-1).toLowerCase();
 
 				if (bundle(id, customerID, flightNumbers, location, car, room)) {
 					System.out.println("Bundle Reserved");
@@ -797,8 +808,28 @@ public class ResourceManagerThread extends Thread {
 	}
 
 	// Reserve bundle 
-	public boolean bundle(int xid, int customerId, Vector<String> flightNumbers, String location, boolean car, boolean room)
+	public boolean bundle(int id, int customerID, Vector<String> flightNumbers, String location, String car, String room)
 	{
-		return false;
-	}
+        Trace.info("RM::bundle(" + id + ", " + customerID + ", " + flightNumbers + ", " + location + ", "
+            + car + ", " + room + ") called");
+        if (car.equals("y") || car.equals("1")) {
+          if (!reserveCar(id, customerID, location)) {
+            return false;
+          }
+        }
+
+        if (room.equals("y") || room.equals("1")) {
+          if (!reserveRoom(id, customerID, location)) {
+            return false;
+          }
+        }
+
+        for (String flightNum : flightNumbers) {
+          if (!reserveFlight(id, customerID, Integer.parseInt(flightNum))) {
+            return false;
+          }
+        }
+
+        return true;
+    }
 }

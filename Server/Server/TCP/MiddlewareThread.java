@@ -152,7 +152,7 @@ public class MiddlewareThread extends Thread {
 				********************************
 				*/
 
-				String response = reader.readLine();
+                String response = reader.readLine();
 				response = response.trim();
 				System.out.println("Got response: " + response);
 				return response;      

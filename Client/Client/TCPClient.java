@@ -132,7 +132,10 @@ public class TCPClient {
 						********************************
 						*/
 
-						String response = reader.readLine();
+                        String response = String.join("\n", reader.readLine().split(";"));
+
+                        /**********************/
+
 						response = response.trim();
 						System.out.println("Got response: " + response);
 						return response;    
@@ -486,8 +489,4 @@ public class TCPClient {
 		return (new Integer(string)).intValue();
 	}
 
-	public static boolean toBoolean(String string)// throws Exception
-	{
-		return (new Boolean(string)).booleanValue();
-	}
 }
