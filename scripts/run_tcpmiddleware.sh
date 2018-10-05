@@ -10,4 +10,4 @@ echo '  $8 - hostname of Customers'
 echo '  $9 - port of Flights'
 
 
-java -Djava.security.policy=java.policy -Djava.rmi.server.codebase=file:$(pwd)/ Server.TCP.TCPMiddleware $1 $2 $3 $4 $5 $6 $7 $8 $9
+java -cp target/classes -Djava.security.policy=java.policy -Djava.rmi.server.codebase=file:$(pwd)/../src/main/java/Server/ Server.TCP.TCPMiddleware $1 $2 $3 $4 $5 $6 $7 $8 $9
