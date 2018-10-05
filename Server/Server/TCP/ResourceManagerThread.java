@@ -7,6 +7,10 @@ import Server.Common.*;
 import Server.Interface.ITCPResourceManager;
 
 public class ResourceManagerThread extends Thread {
+
+	private static String SUCCESS = "SUCCESS";
+	private static String FAIL = "FAIL";
+
 	private Socket socket;
 	protected String m_name = "";
 	protected RMHashMap m_data = new RMHashMap();
@@ -21,34 +25,41 @@ public class ResourceManagerThread extends Thread {
 		try {
 			// Prepare for reading commands
 			System.out.println();
-			System.out.println("Prepare for reading commands");
+			System.out.println("Prepare to read commands");
 
 			InputStream input = socket.getInputStream();
 			BufferedReader reader = new BufferedReader(new InputStreamReader(input));
 
 			OutputStream output = socket.getOutputStream();
 			PrintWriter writer = new PrintWriter(output, true);
-
-			String text;
-
+			String command = "";
 			do {
-				text = reader.readLine();
+				// Read the next command
+				Vector<String> arguments = new Vector<String>();
+				try {
+					System.out.print((char)27 + "[32;1m\n>] " + (char)27 + "[0m");
+					command = reader.readLine().trim();
+					System.out.println("Received request message: " + command);
+					writer.println("Received string: " + command);
+				}
+				catch (IOException io) {
+					System.err.println((char)27 + "[31;1mClient exception: " + (char)27 + "[0m" + io.getLocalizedMessage());
+					io.printStackTrace();
+					System.exit(1);
+				}
 
-				// // Read the next command
-				// String command = "";
-				// Vector<String> arguments = new Vector<String>();
-				
-				// System.out.print((char)27 + "[32;1m\n>] " + (char)27 + "[0m");
-		
-				// arguments = parse(text);
-				// Command cmd = Command.fromString((String)arguments.elementAt(0));
-				
-				// execute(cmd, arguments);
+				try {
+					arguments = parse(command);
+					Command cmd = Command.fromString((String)arguments.elementAt(0));
+					String response = execute(cmd, arguments);
+					writer.println("Response : " + response);
+					}
+					catch (Exception e) {
+						System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0mUncaught exception");
+						e.printStackTrace();
+				}
 
-				System.out.println("Received request message: " + text);
-				writer.println("Received string: " + text);
-
-			} while (!text.equals("bye"));
+			} while (!command.equals("bye"));
 
 			socket.close();
 
@@ -91,41 +102,27 @@ public class ResourceManagerThread extends Thread {
 		return (new Boolean(string)).booleanValue();
 	}
 
-	// public void execute(Command cmd, Vector<String> arguments){
-	// 	switch (cmd)
-	// 	{
-	// 		case Help:
-	// 		{
-	// 			if (arguments.size() == 1) {
-	// 				System.out.println(Command.description());
-	// 			} else if (arguments.size() == 2) {
-	// 				Command l_cmd = Command.fromString((String)arguments.elementAt(1));
-	// 				System.out.println(l_cmd.toString());
-	// 			} else {
-	// 				System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0mImproper use of help command. Location \"help\" or \"help,<CommandName>\"");
-	// 			}
-	// 			break;
-	// 		}
-	// 		case AddFlight: {
-	// 			checkArgumentsCount(5, arguments.size());
+	public String execute(Command cmd, Vector<String> arguments){
+		switch (cmd)
+		{
+			case AddFlight: {
+				checkArgumentsCount(5, arguments.size());
 
-	// 			System.out.println("Adding a new flight [xid=" + arguments.elementAt(1) + "]");
-	// 			System.out.println("-Flight Number: " + arguments.elementAt(2));
-	// 			System.out.println("-Flight Seats: " + arguments.elementAt(3));
-	// 			System.out.println("-Flight Price: " + arguments.elementAt(4));
+				System.out.println("Adding a new flight [xid=" + arguments.elementAt(1) + "]");
+				System.out.println("-Flight Number: " + arguments.elementAt(2));
+				System.out.println("-Flight Seats: " + arguments.elementAt(3));
+				System.out.println("-Flight Price: " + arguments.elementAt(4));
 
-	// 			int id = toInt(arguments.elementAt(1));
-	// 			int flightNum = toInt(arguments.elementAt(2));
-	// 			int flightSeats = toInt(arguments.elementAt(3));
-	// 			int flightPrice = toInt(arguments.elementAt(4));
+				int id = toInt(arguments.elementAt(1));
+				int flightNum = toInt(arguments.elementAt(2));
+				int flightSeats = toInt(arguments.elementAt(3));
+				int flightPrice = toInt(arguments.elementAt(4));
 
-	// 			if (m_resourceManager.addFlight(id, flightNum, flightSeats, flightPrice)) {
-	// 				System.out.println("Flight added");
-	// 			} else {
-	// 				System.out.println("Flight could not be added");
-	// 			}
-	// 			break;
-	// 		}
+				if (addFlight(id, flightNum, flightSeats, flightPrice)) {
+					return SUCCESS;
+				} 
+				;
+			}
 	// 		case AddCars: {
 	// 			checkArgumentsCount(5, arguments.size());
 
@@ -441,8 +438,9 @@ public class ResourceManagerThread extends Thread {
 
 	// 			System.out.println("Quitting client");
 	// 			System.exit(0);
-	// 	}
-	// }
+		}
+		return FAIL;
+	}
 
 	// Reads a data item
 	protected RMItem readData(int xid, String key)

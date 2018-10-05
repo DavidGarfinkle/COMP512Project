@@ -161,7 +161,7 @@ public class TCPClient {
 				String flightPrice = arguments.elementAt(4);
 
                 
-				if (sendRequest(id + flightNum + flightSeats + flightPrice).equals("SUCCESS")) {
+				if (sendRequest("AddFlight,1,1,1,1").equals("SUCCESS")) {
 					System.out.println("Flight added");
 				} else {
 					System.out.println("Flight could not be added");
