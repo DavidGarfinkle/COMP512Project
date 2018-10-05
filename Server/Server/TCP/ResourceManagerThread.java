@@ -4,7 +4,6 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import Server.Common.*;
-import Server.Interface.ITCPResourceManager;
 
 public class ResourceManagerThread extends Thread {
 

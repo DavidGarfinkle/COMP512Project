@@ -168,12 +168,12 @@ public class RMIMiddleware extends Middleware {
 
   public void connectServers() {
 
-		connectServer(s_resourceServer, s_serverPort, s_resourceServerName);
+		// connectServer(s_resourceServer, s_serverPort, s_resourceServerName);
 
-		// connectServer(s_flightServer, s_serverPort, s_flightServerName);
-		// connectServer(s_carServer, s_serverPort, s_carServerName);
-		// connectServer(s_roomServer, s_serverPort, s_roomServerName);
-		// connectServer(s_customerServer, s_serverPort, s_customerServerName);
+		connectServer(s_flightServer, s_serverPort, s_flightServerName);
+		connectServer(s_carServer, s_serverPort, s_carServerName);
+		connectServer(s_roomServer, s_serverPort, s_roomServerName);
+		connectServer(s_customerServer, s_serverPort, s_customerServerName);
 	}
 	
 	public void connectServer(String server, int port, String name) {
