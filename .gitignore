@@ -1,2 +1,7 @@
 *.class
+*.jar
+java.policy
+
+#Macos
 .vscode
+.DS_Store
