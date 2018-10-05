@@ -55,8 +55,7 @@ public class MiddlewareThread extends Thread {
 				Vector<String> arguments = new Vector<String>();
 				// try {
 				System.out.print((char)27 + "[32;1m\n>] " + (char)27 + "[0m");
-				// String lines = reader.lines().collect(Collectors.joining());
-				// command = lines.trim();
+
 				command = reader.readLine().trim();
 				System.out.println("Received request message: " + command);
 				// }
@@ -133,9 +132,23 @@ public class MiddlewareThread extends Thread {
 				InputStream input = socket.getInputStream();
 				BufferedReader reader = new BufferedReader(new InputStreamReader(input));
 
+				/* MULTILINE READING NOT WORKING
+				********************************
+				String line = reader.readLine();
+				String response = line;
+
+				while( line.contains("\n") ){
+					// line = reader.readLine();
+					response += line;
+					System.out.println("read line");
+				}
+				********************************
+				*/
+
 				String response = reader.readLine();
+				response = response.trim();
 				System.out.println("Got response: " + response);
-				return response;    
+				return response;      
 
 		} catch (UnknownHostException ex) {
 

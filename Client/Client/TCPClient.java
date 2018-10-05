@@ -119,11 +119,23 @@ public class TCPClient {
             InputStream input = socket.getInputStream();
             BufferedReader reader = new BufferedReader(new InputStreamReader(input));
 
-            // String lines = reader.lines().collect(Collectors.joining());
-						// String response = lines.trim();
-						String response = reader.readLine().trim();
-            System.out.println("Got response: " + response);
-            return response;    
+            /* MULTILINE READING NOT WORKING
+						********************************
+						String line = reader.readLine();
+						String response = line;
+
+						while( line.contains("\n") ){
+							// line = reader.readLine();
+							response += line;
+							System.out.println("read line");
+						}
+						********************************
+						*/
+
+						String response = reader.readLine();
+						response = response.trim();
+						System.out.println("Got response: " + response);
+						return response;    
 
         } catch (UnknownHostException ex) {
 

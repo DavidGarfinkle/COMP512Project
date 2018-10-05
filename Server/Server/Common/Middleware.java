@@ -20,10 +20,10 @@ public abstract class Middleware implements IResourceManager {
   protected String s_roomServer = "RoomServer";
   protected String s_customerServer = "CustomerServer";
 
-  protected String s_flightServerName = "Flight";
-  protected String s_carServerName = "Car";
-  protected String s_roomServerName = "Room";
-  protected String s_customerServerName = "Customer";
+  protected String s_flightServerName = "Flights";
+  protected String s_carServerName = "Cars";
+  protected String s_roomServerName = "Rooms";
+  protected String s_customerServerName = "Customers";
 
   protected IResourceManager m_flightResourceManager = null;
   protected IResourceManager m_carResourceManager = null;

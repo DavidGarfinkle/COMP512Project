@@ -18,10 +18,10 @@ public class RMIMiddleware extends Middleware {
 	private static String s_resourceServerName = "Resources";
 	private static String s_resourceServer = "localhost";
 
-	private static String s_flightServerName = "Flight";
-	private static String s_carServerName = "Car";
-	private static String s_roomServerName = "Room";
-	private static String s_customerServerName = "Customer";
+	private static String s_flightServerName = "Flights";
+	private static String s_carServerName = "Cars";
+	private static String s_roomServerName = "Rooms";
+	private static String s_customerServerName = "Customers";
 
 	private static String s_flightServer = "localhost";
 	private static String s_carServer = "localhost";
@@ -187,15 +187,19 @@ public class RMIMiddleware extends Middleware {
 							m_resourceManager =
 								(IResourceManager) registry.lookup(s_rmiPrefix + name);
 						}
-						case "Car": {
+						case "Flights": {
+							m_flightResourceManager =
+								(IResourceManager) registry.lookup(s_rmiPrefix + name);
+						}
+						case "Cars": {
 							m_carResourceManager =
 								(IResourceManager) registry.lookup(s_rmiPrefix + name);
 						}
-						case "Room": {
+						case "Rooms": {
 							m_roomResourceManager =
 								(IResourceManager) registry.lookup(s_rmiPrefix + name);
 						}
-						case "Customer": {
+						case "Customers": {
 							m_customerResourceManager =
 								(IResourceManager) registry.lookup(s_rmiPrefix + name);
 						}
