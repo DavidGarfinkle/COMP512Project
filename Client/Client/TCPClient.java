@@ -9,7 +9,7 @@ import java.io.*;
 public class TCPClient {
 
     private static String SUCCESS = "SUCCESS";
-	private static String FAIL = "FAIL";
+		private static String FAIL = "FAIL";
 
     private static String hostname = "localhost";
     private static int port = 1098;

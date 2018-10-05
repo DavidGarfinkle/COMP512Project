@@ -13,11 +13,9 @@ public class ResourceManagerThread extends Thread {
 	private static RMHashMap m_data = new RMHashMap();
 
 	private Socket clientSocket;
-	protected String m_name = "";
 
-	public ResourceManagerThread(Socket clientSocket, String p_name)
+	public ResourceManagerThread(Socket clientSocket)
 	{
-		this.m_name = p_name;
 		this.clientSocket = clientSocket;
 	}
  
