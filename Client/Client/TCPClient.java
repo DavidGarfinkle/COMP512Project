@@ -5,6 +5,7 @@ import Server.Interface.*;
 import java.net.*;
 import java.util.*;
 import java.io.*;
+import java.util.stream.Collectors;
 
 public class TCPClient {
 
@@ -118,7 +119,9 @@ public class TCPClient {
             InputStream input = socket.getInputStream();
             BufferedReader reader = new BufferedReader(new InputStreamReader(input));
 
-            String response = reader.readLine();
+            // String lines = reader.lines().collect(Collectors.joining());
+						// String response = lines.trim();
+						String response = reader.readLine().trim();
             System.out.println("Got response: " + response);
             return response;    
 
@@ -173,11 +176,6 @@ public class TCPClient {
 				System.out.println("-Number of Cars: " + arguments.elementAt(3));
 				System.out.println("-Car Price: " + arguments.elementAt(4));
 
-				int id = toInt(arguments.elementAt(1));
-				String location = arguments.elementAt(2);
-				int numCars = toInt(arguments.elementAt(3));
-				int price = toInt(arguments.elementAt(4));
-
 				if (sendRequest(msg).equals(SUCCESS)) {
 					System.out.println("Cars added");
 				} else {
@@ -193,11 +191,6 @@ public class TCPClient {
 				System.out.println("-Number of Rooms: " + arguments.elementAt(3));
 				System.out.println("-Room Price: " + arguments.elementAt(4));
 
-				int id = toInt(arguments.elementAt(1));
-				String location = arguments.elementAt(2);
-				int numRooms = toInt(arguments.elementAt(3));
-				int price = toInt(arguments.elementAt(4));
-
 				if (sendRequest(msg).equals(SUCCESS)) {
 					System.out.println("Rooms added");
 				} else {
@@ -210,10 +203,12 @@ public class TCPClient {
 
 				System.out.println("Adding a new customer [xid=" + arguments.elementAt(1) + "]");
 
-				int id = toInt(arguments.elementAt(1));
-				String customer = sendRequest(msg);
-
-				System.out.println("Add customer ID: " + customer);
+				String response = sendRequest(msg);
+				if (!response.equals(FAIL)){
+					System.out.println("Added customer with ID: " + response);
+				} else {
+					System.out.println("Failed to add customer");
+				}
 				break;
 			}
 			case AddCustomerID: {
@@ -222,7 +217,6 @@ public class TCPClient {
 				System.out.println("Adding a new customer [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Customer ID: " + arguments.elementAt(2));
 
-				int id = toInt(arguments.elementAt(1));
 				int customerID = toInt(arguments.elementAt(2));
 
 				if (sendRequest(msg).equals(SUCCESS)) {
@@ -238,9 +232,6 @@ public class TCPClient {
 				System.out.println("Deleting a flight [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Flight Number: " + arguments.elementAt(2));
 
-				int id = toInt(arguments.elementAt(1));
-				int flightNum = toInt(arguments.elementAt(2));
-
 				if (sendRequest(msg).equals(SUCCESS)) {
 					System.out.println("Flight Deleted");
 				} else {
@@ -253,9 +244,6 @@ public class TCPClient {
 
 				System.out.println("Deleting all cars at a particular location [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Car Location: " + arguments.elementAt(2));
-
-				int id = toInt(arguments.elementAt(1));
-				String location = arguments.elementAt(2);
 
 				if (sendRequest(msg).equals(SUCCESS)) {
 					System.out.println("Cars Deleted");
@@ -270,9 +258,6 @@ public class TCPClient {
 				System.out.println("Deleting all rooms at a particular location [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Car Location: " + arguments.elementAt(2));
 
-				int id = toInt(arguments.elementAt(1));
-				String location = arguments.elementAt(2);
-
 				if (sendRequest(msg).equals(SUCCESS)) {
 					System.out.println("Rooms Deleted");
 				} else {
@@ -286,9 +271,6 @@ public class TCPClient {
 				System.out.println("Deleting a customer from the database [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Customer ID: " + arguments.elementAt(2));
 				
-				int id = toInt(arguments.elementAt(1));
-				int customerID = toInt(arguments.elementAt(2));
-
 				if (sendRequest(msg).equals(SUCCESS)) {
 					System.out.println("Customer Deleted");
 				} else {
@@ -302,11 +284,12 @@ public class TCPClient {
 				System.out.println("Querying a flight [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Flight Number: " + arguments.elementAt(2));
 				
-				int id = toInt(arguments.elementAt(1));
-				int flightNum = toInt(arguments.elementAt(2));
-
-				String seats = sendRequest(msg);
-				System.out.println("Number of seats available: " + seats);
+				String response = sendRequest(msg);
+				if (!response.equals(FAIL)){
+					System.out.println("Number of seats available: " + response);
+				} else {
+					System.out.println("Failed to get number of seats available");
+				}
 				break;
 			}
 			case QueryCars: {
@@ -315,11 +298,12 @@ public class TCPClient {
 				System.out.println("Querying cars location [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Car Location: " + arguments.elementAt(2));
 				
-				int id = toInt(arguments.elementAt(1));
-				String location = arguments.elementAt(2);
-
-				String numCars = sendRequest(msg);
-				System.out.println("Number of cars at this location: " + numCars);
+				String response = sendRequest(msg);
+				if (!response.equals(FAIL)){
+					System.out.println("Number of cars at this location: " + response);
+				} else {
+					System.out.println("Failed to get number of cars");
+				}
 				break;
 			}
 			case QueryRooms: {
@@ -328,11 +312,12 @@ public class TCPClient {
 				System.out.println("Querying rooms location [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Room Location: " + arguments.elementAt(2));
 				
-				int id = toInt(arguments.elementAt(1));
-				String location = arguments.elementAt(2);
-
-				String numRoom = sendRequest(msg);
-				System.out.println("Number of rooms at this location: " + numRoom);
+				String response = sendRequest(msg);
+				if (!response.equals(FAIL)){
+					System.out.println("Number of rooms at this location: " + response);
+				} else {
+					System.out.println("Failed to get number of rooms");
+				}
 				break;
 			}
 			case QueryCustomer: {
@@ -341,11 +326,12 @@ public class TCPClient {
 				System.out.println("Querying customer information [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Customer ID: " + arguments.elementAt(2));
 
-				int id = toInt(arguments.elementAt(1));
-				int customerID = toInt(arguments.elementAt(2));
-
-				String bill = sendRequest(msg);
-				System.out.println(bill);
+				String response = sendRequest(msg);
+				if (!response.equals(FAIL)){
+					System.out.println(response);
+				} else {
+					System.out.println("Failed to get customer bill");
+				}
 				break;
 			}
 			case QueryFlightPrice: {
@@ -354,12 +340,12 @@ public class TCPClient {
 				System.out.println("Querying a flight price [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Flight Number: " + arguments.elementAt(2));
 
-				int id = toInt(arguments.elementAt(1));
-				int flightNum = toInt(arguments.elementAt(2));
-
-				String price = sendRequest(msg);
-				System.out.println("Price of a seat: " + price);
-				break;
+				String response = sendRequest(msg);
+				if (!response.equals(FAIL)){
+					System.out.println("Price of a seat: " + response);
+				} else {
+					System.out.println("Failed to get price");
+				}
 			}
 			case QueryCarsPrice: {
 				checkArgumentsCount(3, arguments.size());
@@ -367,12 +353,12 @@ public class TCPClient {
 				System.out.println("Querying cars price [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Car Location: " + arguments.elementAt(2));
 
-				int id = toInt(arguments.elementAt(1));
-				String location = arguments.elementAt(2);
-
-				String price = sendRequest(msg);
-				System.out.println("Price of cars at this location: " + price);
-				break;
+				String response = sendRequest(msg);
+				if (!response.equals(FAIL)){
+					System.out.println("Price of cars at this location: " + response);
+				} else {
+					System.out.println("Failed to get price");
+				}
 			}
 			case QueryRoomsPrice: {
 				checkArgumentsCount(3, arguments.size());
@@ -380,11 +366,12 @@ public class TCPClient {
 				System.out.println("Querying rooms price [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Room Location: " + arguments.elementAt(2));
 
-				int id = toInt(arguments.elementAt(1));
-				String location = arguments.elementAt(2);
-
-				String price = sendRequest(msg);
-				System.out.println("Price of rooms at this location: " + price);
+				String response = sendRequest(msg);
+				if (!response.equals(FAIL)){
+					System.out.println("Price of rooms at this location: " + response);
+				} else {
+					System.out.println("Failed to get price");
+				}
 				break;
 			}
 			case ReserveFlight: {
@@ -393,10 +380,6 @@ public class TCPClient {
 				System.out.println("Reserving seat in a flight [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Customer ID: " + arguments.elementAt(2));
 				System.out.println("-Flight Number: " + arguments.elementAt(3));
-
-				int id = toInt(arguments.elementAt(1));
-				int customerID = toInt(arguments.elementAt(2));
-				int flightNum = toInt(arguments.elementAt(3));
 
 				if (sendRequest(msg).equals(SUCCESS)) {
 					System.out.println("Flight Reserved");
@@ -412,10 +395,6 @@ public class TCPClient {
 				System.out.println("-Customer ID: " + arguments.elementAt(2));
 				System.out.println("-Car Location: " + arguments.elementAt(3));
 
-				int id = toInt(arguments.elementAt(1));
-				int customerID = toInt(arguments.elementAt(2));
-				String location = arguments.elementAt(3);
-
 				if (sendRequest(msg).equals(SUCCESS)) {
 					System.out.println("Car Reserved");
 				} else {
@@ -430,10 +409,6 @@ public class TCPClient {
 				System.out.println("-Customer ID: " + arguments.elementAt(2));
 				System.out.println("-Room Location: " + arguments.elementAt(3));
 				
-				int id = toInt(arguments.elementAt(1));
-				int customerID = toInt(arguments.elementAt(2));
-				String location = arguments.elementAt(3);
-
 				if (sendRequest(msg).equals(SUCCESS)) {
 					System.out.println("Room Reserved");
 				} else {
@@ -457,18 +432,7 @@ public class TCPClient {
 				System.out.println("-Book Car: " + arguments.elementAt(arguments.size()-2));
 				System.out.println("-Book Room: " + arguments.elementAt(arguments.size()-1));
 
-				int id = toInt(arguments.elementAt(1));
-				int customerID = toInt(arguments.elementAt(2));
-				Vector<String> flightNumbers = new Vector<String>();
-				for (int i = 0; i < arguments.size() - 6; ++i)
-				{
-					flightNumbers.addElement(arguments.elementAt(3+i));
-				}
-				String location = arguments.elementAt(arguments.size()-3);
-				boolean car = toBoolean(arguments.elementAt(arguments.size()-2));
-				boolean room = toBoolean(arguments.elementAt(arguments.size()-1));
-
-                if (sendRequest(msg).equals(SUCCESS)) {
+        if (sendRequest(msg).equals(SUCCESS)) {
 					System.out.println("Bundle Reserved");
 				} else {
 					System.out.println("Bundle could not be reserved");

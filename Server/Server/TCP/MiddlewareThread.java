@@ -3,6 +3,8 @@ package Server.TCP;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.stream.Collectors;
+
 import Server.Common.*;
 import Server.Interface.ITCPResourceManager;
 
@@ -52,17 +54,19 @@ public class MiddlewareThread extends Thread {
 			do {
 				// Read the next command
 				Vector<String> arguments = new Vector<String>();
-				try {
-					System.out.print((char)27 + "[32;1m\n>] " + (char)27 + "[0m");
-					command = reader.readLine().trim();
-					System.out.println("Received request message: " + command);
-				}
-				catch (IOException io) {
+				// try {
+				System.out.print((char)27 + "[32;1m\n>] " + (char)27 + "[0m");
+				// String lines = reader.lines().collect(Collectors.joining());
+				// command = lines.trim();
+				command = reader.readLine().trim();
+				System.out.println("Received request message: " + command);
+				// }
+				// catch (IOException io) {
 					// System.err.println((char)27 + "[31;1mClient exception: " + (char)27 + "[0m" + io.getLocalizedMessage());
 					// io.printStackTrace();
-					return;
+					// return;
 					// System.exit(1);
-				}
+				// }
 
 				try {
 					arguments = parse(command);
@@ -70,8 +74,8 @@ public class MiddlewareThread extends Thread {
 					System.out.println("Routing request message '" + command + "' to TCPResourceManager" );
 					String response = execute(cmd, arguments, command);
 					writer.println(response);
-					}
-					catch (Exception e) {
+				}
+				catch (Exception e) {
 						System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0mUncaught exception");
 						e.printStackTrace();
 				}
@@ -157,332 +161,181 @@ public class MiddlewareThread extends Thread {
 				System.out.println("-Flight Seats: " + arguments.elementAt(3));
 				System.out.println("-Flight Price: " + arguments.elementAt(4));
 
-				int id = toInt(arguments.elementAt(1));
-				int flightNum = toInt(arguments.elementAt(2));
-				int flightSeats = toInt(arguments.elementAt(3));
-				int flightPrice = toInt(arguments.elementAt(4));
+				return sendRequest(flightServer, flightPort, msg);
+			}
+			case AddCars: {
+				checkArgumentsCount(5, arguments.size());
+
+				System.out.println("Adding new cars [xid=" + arguments.elementAt(1) + "]");
+				System.out.println("-Car Location: " + arguments.elementAt(2));
+				System.out.println("-Number of Cars: " + arguments.elementAt(3));
+				System.out.println("-Car Price: " + arguments.elementAt(4));
+
+				return sendRequest(carServer, carPort, msg);
+			}
+			case AddRooms: {
+				checkArgumentsCount(5, arguments.size());
+
+				System.out.println("Adding new rooms [xid=" + arguments.elementAt(1) + "]");
+				System.out.println("-Room Location: " + arguments.elementAt(2));
+				System.out.println("-Number of Rooms: " + arguments.elementAt(3));
+				System.out.println("-Room Price: " + arguments.elementAt(4));
+
+				return sendRequest(roomServer, roomPort, msg);
+			}
+			case AddCustomer: {
+				checkArgumentsCount(2, arguments.size());
+
+				System.out.println("Adding a new customer [xid=" + arguments.elementAt(1) + "]");
+
+				return sendRequest(customerServer, customerPort, msg);
+			}
+			case AddCustomerID: {
+				checkArgumentsCount(3, arguments.size());
+
+				System.out.println("Adding a new customer [xid=" + arguments.elementAt(1) + "]");
+				System.out.println("-Customer ID: " + arguments.elementAt(2));
+
+				return sendRequest(customerServer, customerPort, msg);
+			}
+			case DeleteFlight: {
+				checkArgumentsCount(3, arguments.size());
+
+				System.out.println("Deleting a flight [xid=" + arguments.elementAt(1) + "]");
+				System.out.println("-Flight Number: " + arguments.elementAt(2));
 
 				return sendRequest(flightServer, flightPort, msg);
 			}
-		// 	case AddCars: {
-		// 		checkArgumentsCount(5, arguments.size());
+			case DeleteCars: {
+				checkArgumentsCount(3, arguments.size());
 
-		// 		System.out.println("Adding new cars [xid=" + arguments.elementAt(1) + "]");
-		// 		System.out.println("-Car Location: " + arguments.elementAt(2));
-		// 		System.out.println("-Number of Cars: " + arguments.elementAt(3));
-		// 		System.out.println("-Car Price: " + arguments.elementAt(4));
+				System.out.println("Deleting all cars at a particular location [xid=" + arguments.elementAt(1) + "]");
+				System.out.println("-Car Location: " + arguments.elementAt(2));
 
-		// 		int id = toInt(arguments.elementAt(1));
-		// 		String location = arguments.elementAt(2);
-		// 		int numCars = toInt(arguments.elementAt(3));
-		// 		int price = toInt(arguments.elementAt(4));
+				return sendRequest(carServer, carPort, msg);
+			}
+			case DeleteRooms: {
+				checkArgumentsCount(3, arguments.size());
 
-		// 		if (addCars(id, location, numCars, price)) {
-		// 			return SUCCESS;
-		// 		}
-		// 		break;
-		// 	}
-		// 	case AddRooms: {
-		// 		checkArgumentsCount(5, arguments.size());
+				System.out.println("Deleting all rooms at a particular location [xid=" + arguments.elementAt(1) + "]");
+				System.out.println("-Car Location: " + arguments.elementAt(2));
 
-		// 		System.out.println("Adding new rooms [xid=" + arguments.elementAt(1) + "]");
-		// 		System.out.println("-Room Location: " + arguments.elementAt(2));
-		// 		System.out.println("-Number of Rooms: " + arguments.elementAt(3));
-		// 		System.out.println("-Room Price: " + arguments.elementAt(4));
+				return sendRequest(roomServer, roomPort, msg);
+			}
+			case DeleteCustomer: {
+				checkArgumentsCount(3, arguments.size());
 
-		// 		int id = toInt(arguments.elementAt(1));
-		// 		String location = arguments.elementAt(2);
-		// 		int numRooms = toInt(arguments.elementAt(3));
-		// 		int price = toInt(arguments.elementAt(4));
-
-		// 		if (addRooms(id, location, numRooms, price)) {
-		// 			return SUCCESS;
-		// 		}
-		// 		break;
-		// 	}
-		// 	case AddCustomer: {
-		// 		checkArgumentsCount(2, arguments.size());
-
-		// 		System.out.println("Adding a new customer [xid=" + arguments.elementAt(1) + "]");
-
-		// 		int id = toInt(arguments.elementAt(1));
-		// 		String customer = Integer.toString(newCustomer(id));
-
-		// 		System.out.println("Add customer ID: " + customer);
-		// 		return customer;
-		// 	}
-		// 	case AddCustomerID: {
-		// 		checkArgumentsCount(3, arguments.size());
-
-		// 		System.out.println("Adding a new customer [xid=" + arguments.elementAt(1) + "]");
-		// 		System.out.println("-Customer ID: " + arguments.elementAt(2));
-
-		// 		int id = toInt(arguments.elementAt(1));
-		// 		int customerID = toInt(arguments.elementAt(2));
-
-		// 		if (newCustomer(id, customerID)) {
-		// 			System.out.println("Add customer ID: " + customerID);
-		// 			return SUCCESS;
-		// 		} else {
-		// 			System.out.println("Customer could not be added");
-		// 		}
-		// 		break;
-		// 	}
-		// 	case DeleteFlight: {
-		// 		checkArgumentsCount(3, arguments.size());
-
-		// 		System.out.println("Deleting a flight [xid=" + arguments.elementAt(1) + "]");
-		// 		System.out.println("-Flight Number: " + arguments.elementAt(2));
-
-		// 		int id = toInt(arguments.elementAt(1));
-		// 		int flightNum = toInt(arguments.elementAt(2));
-
-		// 		if (deleteFlight(id, flightNum)) {
-		// 			System.out.println("Flight Deleted");
-		// 			return SUCCESS;
-		// 		} else {
-		// 			System.out.println("Flight could not be deleted");
-		// 		}
-		// 		break;
-		// 	}
-		// 	case DeleteCars: {
-		// 		checkArgumentsCount(3, arguments.size());
-
-		// 		System.out.println("Deleting all cars at a particular location [xid=" + arguments.elementAt(1) + "]");
-		// 		System.out.println("-Car Location: " + arguments.elementAt(2));
-
-		// 		int id = toInt(arguments.elementAt(1));
-		// 		String location = arguments.elementAt(2);
-
-		// 		if (deleteCars(id, location)) {
-		// 			System.out.println("Cars Deleted");
-		// 			return SUCCESS;
-		// 		} else {
-		// 			System.out.println("Cars could not be deleted");
-		// 		}
-		// 		break;
-		// 	}
-		// 	case DeleteRooms: {
-		// 		checkArgumentsCount(3, arguments.size());
-
-		// 		System.out.println("Deleting all rooms at a particular location [xid=" + arguments.elementAt(1) + "]");
-		// 		System.out.println("-Car Location: " + arguments.elementAt(2));
-
-		// 		int id = toInt(arguments.elementAt(1));
-		// 		String location = arguments.elementAt(2);
-
-		// 		if (deleteRooms(id, location)) {
-		// 			System.out.println("Rooms Deleted");
-		// 			return SUCCESS;
-		// 		} else {
-		// 			System.out.println("Rooms could not be deleted");
-		// 		}
-		// 		break;
-		// 	}
-		// 	case DeleteCustomer: {
-		// 		checkArgumentsCount(3, arguments.size());
-
-		// 		System.out.println("Deleting a customer from the database [xid=" + arguments.elementAt(1) + "]");
-		// 		System.out.println("-Customer ID: " + arguments.elementAt(2));
+				System.out.println("Deleting a customer from the database [xid=" + arguments.elementAt(1) + "]");
+				System.out.println("-Customer ID: " + arguments.elementAt(2));
 				
-		// 		int id = toInt(arguments.elementAt(1));
-		// 		int customerID = toInt(arguments.elementAt(2));
+				return sendRequest(customerServer, customerPort, msg);
+			}
+			case QueryFlight: {
+				checkArgumentsCount(3, arguments.size());
 
-		// 		if (deleteCustomer(id, customerID)) {
-		// 			System.out.println("Customer Deleted");
-		// 			return SUCCESS;
-		// 		} else {
-		// 			System.out.println("Customer could not be deleted");
-		// 		}
-		// 		break;
-		// 	}
-		// 	case QueryFlight: {
-		// 		checkArgumentsCount(3, arguments.size());
-
-		// 		System.out.println("Querying a flight [xid=" + arguments.elementAt(1) + "]");
-		// 		System.out.println("-Flight Number: " + arguments.elementAt(2));
+				System.out.println("Querying a flight [xid=" + arguments.elementAt(1) + "]");
+				System.out.println("-Flight Number: " + arguments.elementAt(2));
 				
-		// 		int id = toInt(arguments.elementAt(1));
-		// 		int flightNum = toInt(arguments.elementAt(2));
+				return sendRequest(flightServer, flightPort, msg);
+			}
+			case QueryCars: {
+				checkArgumentsCount(3, arguments.size());
 
-		// 		String seats = Integer.toString(queryFlight(id, flightNum));
-		// 		System.out.println("Number of seats available: " + seats);
-		// 		return seats;
-		// 	}
-		// 	case QueryCars: {
-		// 		checkArgumentsCount(3, arguments.size());
-
-		// 		System.out.println("Querying cars location [xid=" + arguments.elementAt(1) + "]");
-		// 		System.out.println("-Car Location: " + arguments.elementAt(2));
+				System.out.println("Querying cars location [xid=" + arguments.elementAt(1) + "]");
+				System.out.println("-Car Location: " + arguments.elementAt(2));
 				
-		// 		int id = toInt(arguments.elementAt(1));
-		// 		String location = arguments.elementAt(2);
+				return sendRequest(carServer, carPort, msg);
+			}
+			case QueryRooms: {
+				checkArgumentsCount(3, arguments.size());
 
-		// 		String numCars = Integer.toString(queryCars(id, location));
-		// 		System.out.println("Number of cars at this location: " + numCars);
-		// 		return numCars;
-		// 	}
-		// 	case QueryRooms: {
-		// 		checkArgumentsCount(3, arguments.size());
-
-		// 		System.out.println("Querying rooms location [xid=" + arguments.elementAt(1) + "]");
-		// 		System.out.println("-Room Location: " + arguments.elementAt(2));
+				System.out.println("Querying rooms location [xid=" + arguments.elementAt(1) + "]");
+				System.out.println("-Room Location: " + arguments.elementAt(2));
 				
-		// 		int id = toInt(arguments.elementAt(1));
-		// 		String location = arguments.elementAt(2);
+				return sendRequest(roomServer, roomPort, msg);
+			}
+			case QueryCustomer: {
+				checkArgumentsCount(3, arguments.size());
 
-		// 		String numRoom = Integer.toString(queryRooms(id, location));
-		// 		System.out.println("Number of rooms at this location: " + numRoom);
-		// 		return numRoom;
-		// 	}
-		// 	case QueryCustomer: {
-		// 		checkArgumentsCount(3, arguments.size());
+				System.out.println("Querying customer information [xid=" + arguments.elementAt(1) + "]");
+				System.out.println("-Customer ID: " + arguments.elementAt(2));
 
-		// 		System.out.println("Querying customer information [xid=" + arguments.elementAt(1) + "]");
-		// 		System.out.println("-Customer ID: " + arguments.elementAt(2));
-
-		// 		int id = toInt(arguments.elementAt(1));
-		// 		int customerID = toInt(arguments.elementAt(2));
-
-		// 		String bill = queryCustomerInfo(id, customerID);
-		// 		return bill;
-		// 	}
-		// 	case QueryFlightPrice: {
-		// 		checkArgumentsCount(3, arguments.size());
+				return sendRequest(customerServer, customerPort, msg);
+			}
+			case QueryFlightPrice: {
+				checkArgumentsCount(3, arguments.size());
 				
-		// 		System.out.println("Querying a flight price [xid=" + arguments.elementAt(1) + "]");
-		// 		System.out.println("-Flight Number: " + arguments.elementAt(2));
+				System.out.println("Querying a flight price [xid=" + arguments.elementAt(1) + "]");
+				System.out.println("-Flight Number: " + arguments.elementAt(2));
 
-		// 		int id = toInt(arguments.elementAt(1));
-		// 		int flightNum = toInt(arguments.elementAt(2));
+				return sendRequest(flightServer, flightPort, msg);
+			}
+			case QueryCarsPrice: {
+				checkArgumentsCount(3, arguments.size());
 
-		// 		String price = Integer.toString(queryFlightPrice(id, flightNum));
-		// 		System.out.println("Price of a seat: " + price);
-		// 		return price;
-		// 	}
-		// 	case QueryCarsPrice: {
-		// 		checkArgumentsCount(3, arguments.size());
+				System.out.println("Querying cars price [xid=" + arguments.elementAt(1) + "]");
+				System.out.println("-Car Location: " + arguments.elementAt(2));
 
-		// 		System.out.println("Querying cars price [xid=" + arguments.elementAt(1) + "]");
-		// 		System.out.println("-Car Location: " + arguments.elementAt(2));
+				return sendRequest(carServer, carPort, msg);
+			}
+			case QueryRoomsPrice: {
+				checkArgumentsCount(3, arguments.size());
 
-		// 		int id = toInt(arguments.elementAt(1));
-		// 		String location = arguments.elementAt(2);
+				System.out.println("Querying rooms price [xid=" + arguments.elementAt(1) + "]");
+				System.out.println("-Room Location: " + arguments.elementAt(2));
 
-		// 		String price = Integer.toString(queryCarsPrice(id, location));
-		// 		System.out.println("Price of cars at this location: " + price);
-		// 		return price;
-		// 	}
-		// 	case QueryRoomsPrice: {
-		// 		checkArgumentsCount(3, arguments.size());
+				return sendRequest(roomServer, roomPort, msg);
+			}
+			case ReserveFlight: {
+				checkArgumentsCount(4, arguments.size());
 
-		// 		System.out.println("Querying rooms price [xid=" + arguments.elementAt(1) + "]");
-		// 		System.out.println("-Room Location: " + arguments.elementAt(2));
+				System.out.println("Reserving seat in a flight [xid=" + arguments.elementAt(1) + "]");
+				System.out.println("-Customer ID: " + arguments.elementAt(2));
+				System.out.println("-Flight Number: " + arguments.elementAt(3));
 
-		// 		int id = toInt(arguments.elementAt(1));
-		// 		String location = arguments.elementAt(2);
+				return sendRequest(customerServer, customerPort, msg);
+			}
+			case ReserveCar: {
+				checkArgumentsCount(4, arguments.size());
 
-		// 		String price = Integer.toString(queryRoomsPrice(id, location));
-		// 		System.out.println("Price of rooms at this location: " + price);
-		// 		return price;
-		// 	}
-		// 	case ReserveFlight: {
-		// 		checkArgumentsCount(4, arguments.size());
+				System.out.println("Reserving a car at a location [xid=" + arguments.elementAt(1) + "]");
+				System.out.println("-Customer ID: " + arguments.elementAt(2));
+				System.out.println("-Car Location: " + arguments.elementAt(3));
 
-		// 		System.out.println("Reserving seat in a flight [xid=" + arguments.elementAt(1) + "]");
-		// 		System.out.println("-Customer ID: " + arguments.elementAt(2));
-		// 		System.out.println("-Flight Number: " + arguments.elementAt(3));
+				return sendRequest(carServer, carPort, msg);
+			}
+			case ReserveRoom: {
+				checkArgumentsCount(4, arguments.size());
 
-		// 		int id = toInt(arguments.elementAt(1));
-		// 		int customerID = toInt(arguments.elementAt(2));
-		// 		int flightNum = toInt(arguments.elementAt(3));
+				System.out.println("Reserving a room at a location [xid=" + arguments.elementAt(1) + "]");
+				System.out.println("-Customer ID: " + arguments.elementAt(2));
+				System.out.println("-Room Location: " + arguments.elementAt(3));
 
-		// 		if (reserveFlight(id, customerID, flightNum)) {
-		// 			System.out.println("Flight Reserved");
-		// 			return SUCCESS;
-		// 		} else {
-		// 			System.out.println("Flight could not be reserved");
-		// 		}
-		// 		break;
-		// 	}
-		// 	case ReserveCar: {
-		// 		checkArgumentsCount(4, arguments.size());
+				return sendRequest(roomServer, roomPort, msg);
+			}
+			case Bundle: {
+				if (arguments.size() < 7) {
+					System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0mBundle command expects at least 7 arguments. Location \"help\" or \"help,<CommandName>\"");
+					break;
+				}
 
-		// 		System.out.println("Reserving a car at a location [xid=" + arguments.elementAt(1) + "]");
-		// 		System.out.println("-Customer ID: " + arguments.elementAt(2));
-		// 		System.out.println("-Car Location: " + arguments.elementAt(3));
+				System.out.println("Reserving an bundle [xid=" + arguments.elementAt(1) + "]");
+				System.out.println("-Customer ID: " + arguments.elementAt(2));
+				for (int i = 0; i < arguments.size() - 6; ++i)
+				{
+					System.out.println("-Flight Number: " + arguments.elementAt(3+i));
+				}
+				System.out.println("-Location for Car/Room: " + arguments.elementAt(arguments.size()-3));
+				System.out.println("-Book Car: " + arguments.elementAt(arguments.size()-2));
+				System.out.println("-Book Room: " + arguments.elementAt(arguments.size()-1));
 
-		// 		int id = toInt(arguments.elementAt(1));
-		// 		int customerID = toInt(arguments.elementAt(2));
-		// 		String location = arguments.elementAt(3);
+				return sendRequest(customerServer, customerPort, msg);
+			}
+			case Quit:
+				checkArgumentsCount(1, arguments.size());
 
-		// 		if (reserveCar(id, customerID, location)) {
-		// 			System.out.println("Car Reserved");
-		// 			return SUCCESS;
-		// 		} else {
-		// 			System.out.println("Car could not be reserved");
-		// 		}
-		// 		break;
-		// 	}
-		// 	case ReserveRoom: {
-		// 		checkArgumentsCount(4, arguments.size());
-
-		// 		System.out.println("Reserving a room at a location [xid=" + arguments.elementAt(1) + "]");
-		// 		System.out.println("-Customer ID: " + arguments.elementAt(2));
-		// 		System.out.println("-Room Location: " + arguments.elementAt(3));
-				
-		// 		int id = toInt(arguments.elementAt(1));
-		// 		int customerID = toInt(arguments.elementAt(2));
-		// 		String location = arguments.elementAt(3);
-
-		// 		if (reserveRoom(id, customerID, location)) {
-		// 			System.out.println("Room Reserved");
-		// 			return SUCCESS;
-		// 		} else {
-		// 			System.out.println("Room could not be reserved");
-		// 		}
-		// 		break;
-		// 	}
-		// 	case Bundle: {
-		// 		if (arguments.size() < 7) {
-		// 			System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0mBundle command expects at least 7 arguments. Location \"help\" or \"help,<CommandName>\"");
-		// 			break;
-		// 		}
-
-		// 		System.out.println("Reserving an bundle [xid=" + arguments.elementAt(1) + "]");
-		// 		System.out.println("-Customer ID: " + arguments.elementAt(2));
-		// 		for (int i = 0; i < arguments.size() - 6; ++i)
-		// 		{
-		// 			System.out.println("-Flight Number: " + arguments.elementAt(3+i));
-		// 		}
-		// 		System.out.println("-Location for Car/Room: " + arguments.elementAt(arguments.size()-3));
-		// 		System.out.println("-Book Car: " + arguments.elementAt(arguments.size()-2));
-		// 		System.out.println("-Book Room: " + arguments.elementAt(arguments.size()-1));
-
-		// 		int id = toInt(arguments.elementAt(1));
-		// 		int customerID = toInt(arguments.elementAt(2));
-		// 		Vector<String> flightNumbers = new Vector<String>();
-		// 		for (int i = 0; i < arguments.size() - 6; ++i)
-		// 		{
-		// 			flightNumbers.addElement(arguments.elementAt(3+i));
-		// 		}
-		// 		String location = arguments.elementAt(arguments.size()-3);
-		// 		boolean car = toBoolean(arguments.elementAt(arguments.size()-2));
-		// 		boolean room = toBoolean(arguments.elementAt(arguments.size()-1));
-
-		// 		if (bundle(id, customerID, flightNumbers, location, car, room)) {
-		// 			System.out.println("Bundle Reserved");
-		// 			return SUCCESS;
-		// 		} else {
-		// 			System.out.println("Bundle could not be reserved");
-		// 		}
-		// 		break;
-		// 	}
-		// 	case Quit:
-		// 		checkArgumentsCount(1, arguments.size());
-
-		// 		System.out.println("Quitting Socket Thread");
-		// 		System.exit(0);
+				System.out.println("Quitting Socket Thread");
+				System.exit(0);
 		}
 		return FAIL;
 	}
