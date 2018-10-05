@@ -26,7 +26,7 @@ public class RMIResourceManager extends ResourceManager
 	public void bind() throws RemoteException
 	{
 		// Dynamically generate the stub (client proxy)
-		IResourceManager resourceManager = (IResourceManager)UnicastRemoteObject.exportObject(server, 0);
+		IResourceManager resourceManager = (IResourceManager)UnicastRemoteObject.exportObject(this, 0);
 
 		// Locate the registry
 		try {
