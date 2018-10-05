@@ -9,6 +9,7 @@ public class TCPResourceManager {
 
     private static String name = "Server";
     private static int port = 1098;
+
     public static void main(String[] args) {
         if (args.length < 1) {
             return;
@@ -24,10 +25,10 @@ public class TCPResourceManager {
             System.out.println("Resource manager is listening on port " + port);
  
             while (true) {
-                Socket socket = serverSocket.accept();
+                Socket clientSocket = serverSocket.accept();
                 System.out.println("New client connected");
- 
-                new ResourceManagerThread(socket, name).start();
+                
+                new ResourceManagerThread(clientSocket, name).start();
             }
  
         } catch (IOException ex) {

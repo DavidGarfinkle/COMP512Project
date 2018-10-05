@@ -23,10 +23,10 @@ public class TCPMiddleware {
             System.out.println("Middleware is listening on port " + port);
  
             while (true) {
-                Socket socket = serverSocket.accept();
+                Socket clientSocket = serverSocket.accept();
                 System.out.println("New client connected");
  
-                new ResourceManagerThread(socket, name).start();
+                new ResourceManagerThread(clientSocket, name).start();
             }
  
         } catch (IOException ex) {
