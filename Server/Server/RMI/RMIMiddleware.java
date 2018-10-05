@@ -4,16 +4,16 @@ import java.rmi.RemoteException;
 import java.rmi.NotBoundException;
 import java.util.*;
 import java.io.*;
-
 import Server.Interface.*;
 import Server.Common.*;
-
 import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
 public class RMIMiddleware extends Middleware {
+
+  private static int s_serverPort = 1099;
 
 	private static String s_resourceServerName = "Resources";
 	private static String s_resourceServer = "localhost";
@@ -30,7 +30,8 @@ public class RMIMiddleware extends Middleware {
 
 	private static String s_rmiPrefix = "group28";
 
-	public RMIMiddleware(String flightServer, String carServer, String roomServer, String customerServer) {
+	public RMIMiddleware(String flightServer, String carServer, String roomServer,
+			String customerServer) {
 		super(flightServer, carServer, roomServer, customerServer);
 	}
 
@@ -45,11 +46,13 @@ public class RMIMiddleware extends Middleware {
 
 			// Create the RMI server entry
 			try {
-				// Create a new Server object that routes to four RMs
-				RMIMiddleware server = new RMIMiddleware(s_resourceServer);
+				// Create a new Server object that routes to one test resource manager
+				RMIMiddleware middleware = new RMIMiddleware(s_resourceServer);
 
+				middleware.connectServers();
 				// Dynamically generate the stub (client proxy)
-				IResourceManager middleware = (IResourceManager) UnicastRemoteObject.exportObject(server, 0);
+				IResourceManager middlewareEndpoint =
+						(IResourceManager) UnicastRemoteObject.exportObject(middleware, 0);
 
 				// Bind the four remote objects to endpoints with different names, but to the
 				// same middleware interface
@@ -60,7 +63,7 @@ public class RMIMiddleware extends Middleware {
 					l_registry = LocateRegistry.getRegistry(1099);
 				}
 				final Registry registry = l_registry;
-				registry.rebind(s_rmiPrefix + s_resourceServerName, middleware);
+				registry.rebind(s_rmiPrefix + s_resourceServerName, middlewareEndpoint);
 
 				Runtime.getRuntime().addShutdownHook(new Thread() {
 					public void run() {
@@ -68,15 +71,18 @@ public class RMIMiddleware extends Middleware {
 							registry.unbind(s_rmiPrefix + s_resourceServerName);
 							System.out.println("'" + s_resourceServerName + "' resource manager unbound");
 						} catch (Exception e) {
-							System.err.println((char) 27 + "[31;1mServer exception: " + (char) 27 + "[0mUncaught exception");
+							System.err.println(
+									(char) 27 + "[31;1mServer exception: " + (char) 27 + "[0mUncaught exception");
 							e.printStackTrace();
 						}
 					}
 				});
-				System.out.println("'" + s_resourceServerName + "' resource manager server ready and bound to '" + s_rmiPrefix +
-				s_resourceServerName + "'");
+				System.out
+						.println("'" + s_resourceServerName + "' resource manager server ready and bound to '"
+								+ s_rmiPrefix + s_resourceServerName + "'");
 			} catch (Exception e) {
-				System.err.println((char) 27 + "[31;1mServer exception: " + (char) 27 + "[0mUncaught exception");
+				System.err
+						.println((char) 27 + "[31;1mServer exception: " + (char) 27 + "[0mUncaught exception");
 				e.printStackTrace();
 				System.exit(1);
 			}
@@ -95,10 +101,14 @@ public class RMIMiddleware extends Middleware {
 			// Create the RMI server entry
 			try {
 				// Create a new Server object that routes to four RMs
-				RMIMiddleware server = new RMIMiddleware(s_flightServer, s_carServer, s_roomServer, s_customerServer);
+				RMIMiddleware middleware =
+						new RMIMiddleware(s_flightServer, s_carServer, s_roomServer, s_customerServer);
+
+				middleware.connectServers();
 
 				// Dynamically generate the stub (client proxy)
-				IResourceManager middleware = (IResourceManager) UnicastRemoteObject.exportObject(server, 0);
+				IResourceManager middlewareEndpoint =
+						(IResourceManager) UnicastRemoteObject.exportObject(middleware, 0);
 
 				// Bind the four remote objects to endpoints with different names, but to the
 				// same middleware interface
@@ -109,10 +119,10 @@ public class RMIMiddleware extends Middleware {
 					l_registry = LocateRegistry.getRegistry(1099);
 				}
 				final Registry registry = l_registry;
-				registry.rebind(s_rmiPrefix + s_flightServerName, middleware);
-				registry.rebind(s_rmiPrefix + s_carServerName, middleware);
-				registry.rebind(s_rmiPrefix + s_roomServerName, middleware);
-				registry.rebind(s_rmiPrefix + s_customerServerName, middleware);
+				registry.rebind(s_rmiPrefix + s_flightServerName, middlewareEndpoint);
+				registry.rebind(s_rmiPrefix + s_carServerName, middlewareEndpoint);
+				registry.rebind(s_rmiPrefix + s_roomServerName, middlewareEndpoint);
+				registry.rebind(s_rmiPrefix + s_customerServerName, middlewareEndpoint);
 
 				Runtime.getRuntime().addShutdownHook(new Thread() {
 					public void run() {
@@ -126,21 +136,25 @@ public class RMIMiddleware extends Middleware {
 							registry.unbind(s_rmiPrefix + s_customerServerName);
 							System.out.println("'" + s_customerServerName + "' resource manager unbound");
 						} catch (Exception e) {
-							System.err.println((char) 27 + "[31;1mServer exception: " + (char) 27 + "[0mUncaught exception");
+							System.err.println(
+									(char) 27 + "[31;1mServer exception: " + (char) 27 + "[0mUncaught exception");
 							e.printStackTrace();
 						}
 					}
 				});
-				System.out.println("'" + s_flightServerName + "' resource manager server ready and bound to '" + s_rmiPrefix +
-					s_flightServerName + "'");
-				System.out.println("'" + s_carServerName + "' resource manager server ready and bound to '" + s_rmiPrefix +
-					s_carServerName + "'");
-				System.out.println("'" + s_roomServerName + "' resource manager server ready and bound to '" + s_rmiPrefix +
-					s_roomServerName + "'");
-				System.out.println("'" + s_customerServerName + "' resource manager server ready and bound to '" + s_rmiPrefix +
-					s_customerServerName + "'");
+				System.out
+						.println("'" + s_flightServerName + "' resource manager server ready and bound to '"
+								+ s_rmiPrefix + s_flightServerName + "'");
+				System.out.println("'" + s_carServerName + "' resource manager server ready and bound to '"
+						+ s_rmiPrefix + s_carServerName + "'");
+				System.out.println("'" + s_roomServerName + "' resource manager server ready and bound to '"
+						+ s_rmiPrefix + s_roomServerName + "'");
+				System.out
+						.println("'" + s_customerServerName + "' resource manager server ready and bound to '"
+								+ s_rmiPrefix + s_customerServerName + "'");
 			} catch (Exception e) {
-				System.err.println((char) 27 + "[31;1mServer exception: " + (char) 27 + "[0mUncaught exception");
+				System.err
+						.println((char) 27 + "[31;1mServer exception: " + (char) 27 + "[0mUncaught exception");
 				e.printStackTrace();
 				System.exit(1);
 			}
@@ -149,6 +163,60 @@ public class RMIMiddleware extends Middleware {
 			if (System.getSecurityManager() == null) {
 				System.setSecurityManager(new SecurityManager());
 			}
+		}
+	}
+
+  public void connectServers() {
+
+		connectServer(s_resourceServer, s_serverPort, s_resourceServerName);
+
+		// connectServer(s_flightServer, s_serverPort, s_flightServerName);
+		// connectServer(s_carServer, s_serverPort, s_carServerName);
+		// connectServer(s_roomServer, s_serverPort, s_roomServerName);
+		// connectServer(s_customerServer, s_serverPort, s_customerServerName);
+	}
+	
+	public void connectServer(String server, int port, String name) {
+		try {
+			boolean first = true;
+			while (true) {
+				try {
+					Registry registry = LocateRegistry.getRegistry(server, port);
+					switch (name) {
+						case "Resources": {
+							m_resourceManager =
+								(IResourceManager) registry.lookup(s_rmiPrefix + name);
+						}
+						case "Car": {
+							m_carResourceManager =
+								(IResourceManager) registry.lookup(s_rmiPrefix + name);
+						}
+						case "Room": {
+							m_roomResourceManager =
+								(IResourceManager) registry.lookup(s_rmiPrefix + name);
+						}
+						case "Customer": {
+							m_customerResourceManager =
+								(IResourceManager) registry.lookup(s_rmiPrefix + name);
+						}
+					}
+					System.out.println("Connected to '" + name + "' server [" + server + ":" + port
+						+ "/" + s_rmiPrefix + name + "]");
+					break;
+				} catch (NotBoundException | RemoteException e) {
+					if (first) {
+					System.out.println("Waiting for '" + name + "' server [" + server + ":"
+						+ port + "/" + s_rmiPrefix + name + "]");
+					first = false;
+					}
+				}
+			Thread.sleep(500);
+			}
+		} catch (Exception e) {
+			System.err.println(
+				(char) 27 + "[31;1mServer exception: " + (char) 27 + "[0mUncaught exception");
+			e.printStackTrace();
+			System.exit(1);
 		}
 	}
 }
