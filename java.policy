@@ -1,0 +1,3 @@
+grant codebase "file:/home/2013/dgarfi/COMP512Project/Tests/" {
+permission java.security.AllPermission;
+};
