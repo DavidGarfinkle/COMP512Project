@@ -120,6 +120,13 @@ public class MiddlewareThread extends Thread {
 		return (new Boolean(string)).booleanValue();
 	}
 
+    public String sendRequests(String msg) {
+        if (sendRequest(this.flightServer, this.flightPort, msg).equals(FAIL)) return FAIL;
+		if (sendRequest(this.carServer, this.carPort, msg).equals(FAIL)) return FAIL;
+		if (sendRequest(this.roomServer, this.roomPort, msg).equals(FAIL)) return FAIL;
+		return sendRequest(this.customerServer, this.customerPort, msg);
+    }
+
 	public String sendRequest(String hostname, int port, String msg) {
 
 		try (Socket socket = new Socket(hostname, port)) {
@@ -173,7 +180,7 @@ public class MiddlewareThread extends Thread {
 				System.out.println("-Flight Seats: " + arguments.elementAt(3));
 				System.out.println("-Flight Price: " + arguments.elementAt(4));
 
-				return sendRequest(flightServer, flightPort, msg);
+				return sendRequests(msg);
 			}
 			case AddCars: {
 				checkArgumentsCount(5, arguments.size());
@@ -183,7 +190,7 @@ public class MiddlewareThread extends Thread {
 				System.out.println("-Number of Cars: " + arguments.elementAt(3));
 				System.out.println("-Car Price: " + arguments.elementAt(4));
 
-				return sendRequest(carServer, carPort, msg);
+				return sendRequests(msg);
 			}
 			case AddRooms: {
 				checkArgumentsCount(5, arguments.size());
@@ -193,14 +200,19 @@ public class MiddlewareThread extends Thread {
 				System.out.println("-Number of Rooms: " + arguments.elementAt(3));
 				System.out.println("-Room Price: " + arguments.elementAt(4));
 
-				return sendRequest(roomServer, roomPort, msg);
+				return sendRequests(msg);
 			}
 			case AddCustomer: {
 				checkArgumentsCount(2, arguments.size());
 
 				System.out.println("Adding a new customer [xid=" + arguments.elementAt(1) + "]");
 
-				return sendRequest(customerServer, customerPort, msg);
+				String id = sendRequest(this.customerServer, this.customerPort, msg);
+                msg = "AddCustomerId,0," + id;
+                sendRequest(this.flightServer, this.flightPort, msg);
+                sendRequest(this.carServer, this.carPort, msg);
+                sendRequest(this.roomServer, this.roomPort, msg);
+                return id;
 			}
 			case AddCustomerID: {
 				checkArgumentsCount(3, arguments.size());
@@ -208,7 +220,7 @@ public class MiddlewareThread extends Thread {
 				System.out.println("Adding a new customer [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Customer ID: " + arguments.elementAt(2));
 
-				return sendRequest(customerServer, customerPort, msg);
+				return sendRequests(msg);
 			}
 			case DeleteFlight: {
 				checkArgumentsCount(3, arguments.size());
@@ -216,7 +228,7 @@ public class MiddlewareThread extends Thread {
 				System.out.println("Deleting a flight [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Flight Number: " + arguments.elementAt(2));
 
-				return sendRequest(flightServer, flightPort, msg);
+				return sendRequests(msg);
 			}
 			case DeleteCars: {
 				checkArgumentsCount(3, arguments.size());
@@ -224,7 +236,7 @@ public class MiddlewareThread extends Thread {
 				System.out.println("Deleting all cars at a particular location [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Car Location: " + arguments.elementAt(2));
 
-				return sendRequest(carServer, carPort, msg);
+				return sendRequests(msg);
 			}
 			case DeleteRooms: {
 				checkArgumentsCount(3, arguments.size());
@@ -232,7 +244,7 @@ public class MiddlewareThread extends Thread {
 				System.out.println("Deleting all rooms at a particular location [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Car Location: " + arguments.elementAt(2));
 
-				return sendRequest(roomServer, roomPort, msg);
+				return sendRequests(msg);
 			}
 			case DeleteCustomer: {
 				checkArgumentsCount(3, arguments.size());
@@ -240,7 +252,7 @@ public class MiddlewareThread extends Thread {
 				System.out.println("Deleting a customer from the database [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Customer ID: " + arguments.elementAt(2));
 				
-				return sendRequest(customerServer, customerPort, msg);
+				return sendRequests(msg);
 			}
 			case QueryFlight: {
 				checkArgumentsCount(3, arguments.size());
@@ -248,7 +260,7 @@ public class MiddlewareThread extends Thread {
 				System.out.println("Querying a flight [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Flight Number: " + arguments.elementAt(2));
 				
-				return sendRequest(flightServer, flightPort, msg);
+				return sendRequests(msg);
 			}
 			case QueryCars: {
 				checkArgumentsCount(3, arguments.size());
@@ -256,7 +268,7 @@ public class MiddlewareThread extends Thread {
 				System.out.println("Querying cars location [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Car Location: " + arguments.elementAt(2));
 				
-				return sendRequest(carServer, carPort, msg);
+				return sendRequests(msg);
 			}
 			case QueryRooms: {
 				checkArgumentsCount(3, arguments.size());
@@ -264,7 +276,7 @@ public class MiddlewareThread extends Thread {
 				System.out.println("Querying rooms location [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Room Location: " + arguments.elementAt(2));
 				
-				return sendRequest(roomServer, roomPort, msg);
+				return sendRequests(msg);
 			}
 			case QueryCustomer: {
 				checkArgumentsCount(3, arguments.size());
@@ -272,7 +284,7 @@ public class MiddlewareThread extends Thread {
 				System.out.println("Querying customer information [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Customer ID: " + arguments.elementAt(2));
 
-				return sendRequest(customerServer, customerPort, msg);
+				return sendRequests(msg);
 			}
 			case QueryFlightPrice: {
 				checkArgumentsCount(3, arguments.size());
@@ -280,7 +292,7 @@ public class MiddlewareThread extends Thread {
 				System.out.println("Querying a flight price [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Flight Number: " + arguments.elementAt(2));
 
-				return sendRequest(flightServer, flightPort, msg);
+				return sendRequests(msg);
 			}
 			case QueryCarsPrice: {
 				checkArgumentsCount(3, arguments.size());
@@ -288,7 +300,7 @@ public class MiddlewareThread extends Thread {
 				System.out.println("Querying cars price [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Car Location: " + arguments.elementAt(2));
 
-				return sendRequest(carServer, carPort, msg);
+				return sendRequests(msg);
 			}
 			case QueryRoomsPrice: {
 				checkArgumentsCount(3, arguments.size());
@@ -296,7 +308,7 @@ public class MiddlewareThread extends Thread {
 				System.out.println("Querying rooms price [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Room Location: " + arguments.elementAt(2));
 
-				return sendRequest(roomServer, roomPort, msg);
+				return sendRequests(msg);
 			}
 			case ReserveFlight: {
 				checkArgumentsCount(4, arguments.size());
@@ -305,7 +317,7 @@ public class MiddlewareThread extends Thread {
 				System.out.println("-Customer ID: " + arguments.elementAt(2));
 				System.out.println("-Flight Number: " + arguments.elementAt(3));
 
-				return sendRequest(customerServer, customerPort, msg);
+				return sendRequests(msg);
 			}
 			case ReserveCar: {
 				checkArgumentsCount(4, arguments.size());
@@ -314,7 +326,7 @@ public class MiddlewareThread extends Thread {
 				System.out.println("-Customer ID: " + arguments.elementAt(2));
 				System.out.println("-Car Location: " + arguments.elementAt(3));
 
-				return sendRequest(carServer, carPort, msg);
+				return sendRequests(msg);
 			}
 			case ReserveRoom: {
 				checkArgumentsCount(4, arguments.size());
@@ -323,7 +335,7 @@ public class MiddlewareThread extends Thread {
 				System.out.println("-Customer ID: " + arguments.elementAt(2));
 				System.out.println("-Room Location: " + arguments.elementAt(3));
 
-				return sendRequest(roomServer, roomPort, msg);
+				return sendRequests(msg);
 			}
 			case Bundle: {
 				if (arguments.size() < 7) {
@@ -341,7 +353,7 @@ public class MiddlewareThread extends Thread {
 				System.out.println("-Book Car: " + arguments.elementAt(arguments.size()-2));
 				System.out.println("-Book Room: " + arguments.elementAt(arguments.size()-1));
 
-				return sendRequest(customerServer, customerPort, msg);
+				return sendRequests(msg);
 			}
 			case Quit:
 				checkArgumentsCount(1, arguments.size());
