@@ -1,5 +1,6 @@
 package Server.RMI;
 
+import java.rmi.*;
 import java.rmi.RemoteException;
 import java.rmi.NotBoundException;
 import java.util.*;
@@ -11,12 +12,10 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
-public class RMIMiddleware extends Middleware {
+public class RMIMiddleware extends Middleware implements Remote {
 
   private static int s_serverPort = 1099;
-
-	private static String s_resourceServerName = "Resources";
-	private static String s_resourceServer = "localhost";
+	private static String s_rmiPrefix = "group28";
 
 	private static String s_flightServerName = "Flight";
 	private static String s_carServerName = "Car";
@@ -28,21 +27,10 @@ public class RMIMiddleware extends Middleware {
 	private static String s_roomServer = "localhost";
 	private static String s_customerServer = "localhost";
 
-	private static String s_rmiPrefix = "group28";
-
-	public RMIMiddleware(String flightServer, String carServer, String roomServer,
-			String customerServer) {
-		super(flightServer, carServer, roomServer, customerServer);
-	}
-
-	public RMIMiddleware(String resourceServer) {
-		super(resourceServer);
-	}
-
 	public static void main(String args[]) {
 
 		if (args.length == 1) {
-			s_resourceServer = args[0];
+			ResourceManager s_resourceServer = args[0];
 
 			// Create the RMI server entry
 			try {
@@ -166,57 +154,39 @@ public class RMIMiddleware extends Middleware {
 		}
 	}
 
-  public void connectServers() {
-
-		connectServer(s_resourceServer, s_serverPort, s_resourceServerName);
-
-		// connectServer(s_flightServer, s_serverPort, s_flightServerName);
-		// connectServer(s_carServer, s_serverPort, s_carServerName);
-		// connectServer(s_roomServer, s_serverPort, s_roomServerName);
-		// connectServer(s_customerServer, s_serverPort, s_customerServerName);
-	}
-	
-	public void connectServer(String server, int port, String name) {
-		try {
-			boolean first = true;
-			while (true) {
-				try {
-					Registry registry = LocateRegistry.getRegistry(server, port);
-					switch (name) {
-						case "Resources": {
-							m_resourceManager =
-								(IResourceManager) registry.lookup(s_rmiPrefix + name);
-						}
-						case "Car": {
-							m_carResourceManager =
-								(IResourceManager) registry.lookup(s_rmiPrefix + name);
-						}
-						case "Room": {
-							m_roomResourceManager =
-								(IResourceManager) registry.lookup(s_rmiPrefix + name);
-						}
-						case "Customer": {
-							m_customerResourceManager =
-								(IResourceManager) registry.lookup(s_rmiPrefix + name);
-						}
+	public void connectServer(String server, int port, String name) throws RemoteException {
+		boolean first = true;
+		while (true) {
+			try {
+				switch (name) {
+					case "Resources": {
+						m_resourceManager =
+							(IResourceManager) registry.lookup(s_rmiPrefix + name);
 					}
-					System.out.println("Connected to '" + name + "' server [" + server + ":" + port
-						+ "/" + s_rmiPrefix + name + "]");
-					break;
-				} catch (NotBoundException | RemoteException e) {
-					if (first) {
-					System.out.println("Waiting for '" + name + "' server [" + server + ":"
-						+ port + "/" + s_rmiPrefix + name + "]");
-					first = false;
+					case "Car": {
+						m_carResourceManager =
+							(IResourceManager) registry.lookup(s_rmiPrefix + name);
+					}
+					case "Room": {
+						m_roomResourceManager =
+							(IResourceManager) registry.lookup(s_rmiPrefix + name);
+					}
+					case "Customer": {
+						m_customerResourceManager =
+							(IResourceManager) registry.lookup(s_rmiPrefix + name);
 					}
 				}
-			Thread.sleep(500);
+				System.out.println("Connected to '" + name + "' server [" + server + ":" + port
+					+ "/" + s_rmiPrefix + name + "]");
+				break;
+			} catch (NotBoundException | RemoteException e) {
+				if (first) {
+				System.out.println("Waiting for '" + name + "' server [" + server + ":"
+					+ port + "/" + s_rmiPrefix + name + "]");
+				first = false;
+				}
 			}
-		} catch (Exception e) {
-			System.err.println(
-				(char) 27 + "[31;1mServer exception: " + (char) 27 + "[0mUncaught exception");
-			e.printStackTrace();
-			System.exit(1);
+  		Thread.sleep(500);
 		}
 	}
 }

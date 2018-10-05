@@ -5,6 +5,11 @@ import java.io.*;
 
 public class Middleware {
 
+  ResourceManager m_flightResourceManager;
+  ResourceManager m_roomResourceManager;
+  ResourceManager m_carResourceManager;
+  ResourceManager m_customerResourceManager;
+
   public Middleware(ResourceManager flightRM, ResourceManager customerRM, ResourceManager roomRM, ResourceManager carRM)
   {
     m_flightResourceManager = flightRM;
@@ -106,7 +111,7 @@ public class Middleware {
   	return m_carResourceManager.reserveCar(xid, cid, location);
   }
 
-  public boolean reserveRoom(int xid, int cid, String location) throws RemoteException {
+  public boolean reserveRoom(int xid, int cid, String location) {
   	Trace.info("RM::reserveRoom(" + xid + ", " + cid + ", " + location + ") called");
   	return m_roomResourceManager.reserveRoom(xid, cid, location);
   }
@@ -118,7 +123,7 @@ public class Middleware {
   	}
   	Trace.info("RM::bundle(" + xid + ", " + cid + ", " + flights + ", " + location + ", " + car
   		+ ", " + room + ") called");
-  	return m_resourceManager.reserveRoom(xid, cid, location);
+    return false;
   }
 
   public String getName() {
