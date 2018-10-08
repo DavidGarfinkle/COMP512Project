@@ -798,8 +798,29 @@ public class ResourceManagerThread extends Thread {
 	}
 
 	// Reserve bundle 
-	public boolean bundle(int xid, int customerId, Vector<String> flightNumbers, String location, boolean car, boolean room)
+	public boolean bundle(int id, int customerID, Vector<String> flightNumbers, String location, String car, String room)
 	{
-		return false;
-	}
+        Trace.info("RM::bundle(" + id + ", " + customerID + ", " + flightNumbers + ", " + location + ", "
+            + car + ", " + room + ") called");
+
+        if (car.equals("y") || car.equals("1")) {
+          if (!reserveCar(id, customerID, location)) {
+            return false;
+          }
+        }
+
+        if (room.equals("y") || room.equals("1")) {
+          if (!reserveRoom(id, customerID, location)) {
+            return false;
+          }
+        }
+
+        for (String flightNum : flightNumbers) {
+          if (!reserveFlight(id, customerID, Integer.parseInt(flightNum))) {
+            return false;
+          }
+        }
+
+        return true;
+    }
 }
