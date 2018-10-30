@@ -101,7 +101,7 @@ public class ResourceManager implements IResourceManager
 			value = curObj.getPrice();
 		}
 		Trace.info("RM::queryPrice(" + xid + ", " + key + ") returns cost=$" + value);
-		return value;        
+		return value;   
 	}
 
 	// Reserve an item
