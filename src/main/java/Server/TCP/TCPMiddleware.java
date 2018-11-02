@@ -56,7 +56,8 @@ public class TCPMiddleware {
                     Socket clientSocket = serverSocket.accept();
                     System.out.println("New client connected");
      
-                    new MiddlewareThread(clientSocket).start();
+                    Thread MThread = new Thread( new MiddlewareThread(clientSocket));
+                    MThread.start();
                 }
      
             } catch (IOException ex) {

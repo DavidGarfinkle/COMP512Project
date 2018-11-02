@@ -6,9 +6,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import Server.Common.*;
-import Server.Interface.ITCPResourceManager;
 
-public class MiddlewareThread extends Thread {
+public class MiddlewareThread  implements Runnable {
 
 	private static String SUCCESS = "SUCCESS";
 	private static String FAIL = "FAIL";
@@ -28,6 +27,7 @@ public class MiddlewareThread extends Thread {
 
 	public MiddlewareThread(Socket clientSocket)
 	{
+		
 		this.clientSocket = clientSocket;
 		this.flightServer = TCPMiddleware.flightServer;
 		this.carServer = TCPMiddleware.carServer;

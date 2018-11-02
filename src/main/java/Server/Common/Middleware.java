@@ -1,9 +1,10 @@
 package Server.Common;
 
 import java.util.*;
+import Server.Interface.Interface;
 import java.io.*;
 
-public class Middleware {
+public class Middleware implements Interface{
 
   ResourceManager m_flightResourceManager;
   ResourceManager m_roomResourceManager;
