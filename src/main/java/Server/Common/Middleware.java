@@ -10,12 +10,12 @@ public class Middleware {
   ResourceManager m_carResourceManager;
   ResourceManager m_customerResourceManager;
 
-  public Middleware(ResourceManager flightRM, ResourceManager customerRM, ResourceManager roomRM, ResourceManager carRM)
+  public Middleware(ResourceManager flightRM, ResourceManager carRM, ResourceManager roomRM, ResourceManager customerRM)
   {
     m_flightResourceManager = flightRM;
-    m_roomResourceManager = roomRM;
+    m_roomResourceManager = carRM;
+    m_carResourceManager = roomRM;
     m_customerResourceManager = customerRM;
-    m_carResourceManager = carRM;
   }
 
   public boolean addFlight(int xid, int flightnumber, int flightSeats, int flightPrice) {
