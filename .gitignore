@@ -5,7 +5,3 @@ java.policy
 #Macos
 .vscode
 .DS_Store
-
-.classpath
-.project
-.settings/
