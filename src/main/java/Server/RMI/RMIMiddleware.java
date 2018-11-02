@@ -3,16 +3,13 @@ package Server.RMI;
 import java.rmi.*;
 import java.rmi.RemoteException;
 import java.rmi.NotBoundException;
-import java.util.*;
-import java.io.*;
 import Server.Interface.*;
 import Server.Common.*;
 import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
-import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
-public class RMIMiddleware extends Middleware implements Remote {
+public class RMIMiddleware extends Middleware {
 
   private static int s_serverPort = 1099;
 	private static String s_rmiPrefix = "group28";
@@ -26,11 +23,6 @@ public class RMIMiddleware extends Middleware implements Remote {
 	private static String s_carServer = "localhost";
 	private static String s_roomServer = "localhost";
 	private static String s_customerServer = "localhost";
-
-	private static ResourceManager flightRM;
-  private static ResourceManager carRM;
-  private static ResourceManager roomRM;
-  private static ResourceManager customerRM;
 	
 	public static void main(String args[]) {
 
@@ -43,10 +35,9 @@ public class RMIMiddleware extends Middleware implements Remote {
 			// Create the RMI server entry
 			try {
 				
-				connectServers();
 				// Create a new Server object that routes to four RMs
 				RMIMiddleware middleware =
-						new RMIMiddleware(flightRM, carRM, roomRM, customerRM);
+						new RMIMiddleware();
 
 				// Dynamically generate the stub (client proxy)
 				IResourceManager middlewareEndpoint =
@@ -108,14 +99,14 @@ public class RMIMiddleware extends Middleware implements Remote {
 		}
 	}
 
-	public static void connectServers() throws RemoteException {
+	public void connectServers() throws RemoteException {
 		connectServer(s_flightServer, s_serverPort, s_flightServerName);
 		connectServer(s_carServer, s_serverPort, s_carServerName);
 		connectServer(s_roomServer, s_serverPort, s_roomServerName);
 		connectServer(s_customerServer, s_serverPort, s_customerServerName);
 	}
 
-	public static void connectServer(String server, int port, String name) throws RemoteException {
+	public void connectServer(String server, int port, String name) throws RemoteException {
 		boolean first = true;
 		while (true) {
 			try {
@@ -123,19 +114,19 @@ public class RMIMiddleware extends Middleware implements Remote {
 				switch (name) {
 					case "Flight": {
 						flightRM =
-							(ResourceManager) registry.lookup(s_rmiPrefix + name);
+							(IResourceManager) registry.lookup(s_rmiPrefix + name);
 					}
 					case "Car": {
 						carRM =
-							(ResourceManager) registry.lookup(s_rmiPrefix + name);
+							(IResourceManager) registry.lookup(s_rmiPrefix + name);
 					}
 					case "Room": {
 						roomRM =
-							(ResourceManager) registry.lookup(s_rmiPrefix + name);
+							(IResourceManager) registry.lookup(s_rmiPrefix + name);
 					}
 					case "Customer": {
 						customerRM =
-							(ResourceManager) registry.lookup(s_rmiPrefix + name);
+							(IResourceManager) registry.lookup(s_rmiPrefix + name);
 					}
 				}
 				System.out.println("Connected to '" + name + "' server [" + server + ":" + port
@@ -152,8 +143,8 @@ public class RMIMiddleware extends Middleware implements Remote {
 		}
 	}
 
-	public RMIMiddleware(ResourceManager flightRM, ResourceManager carRM, ResourceManager roomRM, ResourceManager customerRM)
+	public RMIMiddleware() throws RemoteException
 	{
-		super(flightRM, carRM, roomRM, customerRM);
+		super();
 	}
 }

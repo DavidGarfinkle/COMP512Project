@@ -8,9 +8,8 @@ package Server.Common;
 import Server.Interface.*;
 
 import java.util.*;
-import java.io.*;
 
-public class ResourceManager implements Interface
+public class ResourceManager implements IResourceManager
 {
 	protected String m_name = "";
 	protected RMHashMap m_data = new RMHashMap();
