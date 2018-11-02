@@ -11,17 +11,17 @@ public class TestResourceManager {
     private ResourceManager rm = new ResourceManager("testResource");
 
     @BeforeEach
-    public void setUp() throws RemoteException {
+    public void setUp() {
     }
 
     @Test
-    public void testNewCustomer() throws RemoteException {
+    public void testNewCustomer() {
         int customerId = 0;
         rm.newCustomer(customerId);
     }
 
     @Test
-    public void testReserveFlight() throws RemoteException {
+    public void testReserveFlight() {
       int customerId = 0;
       int flightId = 1;
       int flightSeats = 100;

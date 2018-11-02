@@ -4,9 +4,8 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import Server.Common.*;
-import Server.Interface.ITCPResourceManager;
 
-public class ResourceManagerThread extends Thread {
+public class ResourceManagerThread extends ResourceManager implements Runnable {
 
 	private static String SUCCESS = "SUCCESS";
 	private static String FAIL = "FAIL";
@@ -14,8 +13,9 @@ public class ResourceManagerThread extends Thread {
 
 	private Socket clientSocket;
 
-	public ResourceManagerThread(Socket clientSocket)
+	public ResourceManagerThread(Socket clientSocket, String name)
 	{
+		super(name);
 		this.clientSocket = clientSocket;
 	}
  
