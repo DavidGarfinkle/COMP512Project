@@ -6,6 +6,8 @@ import org.junit.jupiter.api.*;
 
 import Server.Common.*;
 
+import utils.*;
+
 public class TestMiddleware {
 
     ResourceManager flightRM;
@@ -36,5 +38,43 @@ public class TestMiddleware {
 
       remainingSeats = this.mw.queryFlight(0, flightId);
       Assertions.assertEquals(flightSeats-1, remainingSeats, "Flight seat numbers differ");
+    }
+
+    public void testBundleInsufficientResources() throws RemoteException {
+      int customerId = this.mw.newCustomer(1);
+      Vector<String> flightNumbers = new Vector<String>();
+      flightNumbers.add("1");
+      flightNumbers.add("2");
+
+      boolean res = this.mw.bundle(0, customerId, flightNumbers, "mtl", true, true);
+      Assertions.assertEquals(res, false, "Bundle should fail due to inadequate resources");
+    }
+
+    public void testBundleSufficientResources() throws RemoteException {
+
+      IncrementingInteger txid = new IncrementingInteger();
+      Vector<String> flightNumbers = new Vector<String>();
+      flightNumbers.add("1");
+      flightNumbers.add("2");
+
+      String location = "mtl";
+      boolean car = true;
+      boolean room = true;
+
+      int customerId = this.mw.newCustomer(1);
+
+      // Add flights
+      for (String flightNum : flightNumbers) {
+        this.mw.addFlight(txid.pick(), Integer.parseInt(flightNum), 100, 100);
+      }
+
+      // Add cars
+      this.mw.addCars(txid.pick(), location, 100, 100);
+
+      // Add rooms
+      this.mw.addRooms(txid.pick(), location, 100, 100);
+
+      boolean res = this.mw.bundle(txid.pick(), customerId, flightNumbers, location, car, room);
+      Assertions.assertEquals(res, true, "Bundle should succeed");
     }
 }
