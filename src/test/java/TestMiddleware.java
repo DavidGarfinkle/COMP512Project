@@ -8,17 +8,21 @@ import Server.Common.*;
 
 public class TestMiddleware {
 
+    ResourceManager flightRM;
+    ResourceManager carRM;
+    ResourceManager roomRM;
+    Middleware mw;
+
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws RemoteException {
+      this.flightRM = new ResourceManager("Flight");
+      this.carRM = new ResourceManager("Car");
+      this.roomRM = new ResourceManager("Room");
+      this.mw = new Middleware(flightRM, roomRM, carRM);
     }
 
     @Test
     public void testReserveFlight() throws RemoteException {
-
-      ResourceManager flightRM = new ResourceManager("Flight");
-      ResourceManager carRM = new ResourceManager("Car");
-      ResourceManager roomRM = new ResourceManager("Room");
-      Middleware mw = new Middleware(flightRM, roomRM, carRM);
 
       int customerId = 0;
       int flightId = 1;
@@ -26,11 +30,11 @@ public class TestMiddleware {
       int txid = 0;
       int remainingSeats;
 
-      customerId = mw.newCustomer(txid);
-      mw.addFlight(txid, flightId, flightSeats, 100);
-      mw.reserveFlight(customerId, customerId, flightId);
+      customerId = this.mw.newCustomer(txid);
+      this.mw.addFlight(txid, flightId, flightSeats, 100);
+      this.mw.reserveFlight(customerId, customerId, flightId);
 
-      remainingSeats = mw.queryFlight(0, flightId);
+      remainingSeats = this.mw.queryFlight(0, flightId);
       Assertions.assertEquals(flightSeats-1, remainingSeats, "Flight seat numbers differ");
     }
 }
