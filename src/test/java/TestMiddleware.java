@@ -40,6 +40,7 @@ public class TestMiddleware {
       Assertions.assertEquals(flightSeats-1, remainingSeats, "Flight seat numbers differ");
     }
 
+    @Test
     public void testBundleInsufficientResources() throws RemoteException {
       int customerId = this.mw.newCustomer(1);
       Vector<String> flightNumbers = new Vector<String>();
@@ -50,6 +51,7 @@ public class TestMiddleware {
       Assertions.assertEquals(res, false, "Bundle should fail due to inadequate resources");
     }
 
+    @Test
     public void testBundleSufficientResources() throws RemoteException {
 
       IncrementingInteger txid = new IncrementingInteger();
