@@ -24,7 +24,7 @@ public class RMIMiddleware extends Middleware {
 
 	public static void main(String args[]) {
 
-		if (args.length > 3) {
+		if (args.length > 2) {
 			s_flightServer = args[0];
 			s_carServer = args[1];
 			s_roomServer = args[2];
@@ -33,8 +33,8 @@ public class RMIMiddleware extends Middleware {
 			try {
 
 				// Create a new Server object that routes to four RMs
-				RMIMiddleware middleware =
-						new RMIMiddleware();
+				RMIMiddleware middleware =new RMIMiddleware();
+				middleware.connectServers();
 
 				// Dynamically generate the stub (client proxy)
 				IResourceManager middlewareEndpoint =
@@ -90,13 +90,13 @@ public class RMIMiddleware extends Middleware {
 		}
 	}
 
-	public void connectServers() throws RemoteException {
+	public void connectServers() {
 		connectServer(s_flightServer, s_serverPort, s_flightServerName);
 		connectServer(s_carServer, s_serverPort, s_carServerName);
 		connectServer(s_roomServer, s_serverPort, s_roomServerName);
 	}
 
-	public void connectServer(String server, int port, String name) throws RemoteException {
+	public void connectServer(String server, int port, String name) {
 		boolean first = true;
 		while (true) {
 			try {
@@ -130,9 +130,7 @@ public class RMIMiddleware extends Middleware {
 	}
 
 	public RMIMiddleware() throws RemoteException
-	{
-    this.flightRM = flightRM;
-    this.carRM = carRM;
-    this.roomRM = roomRM;
+	{ 
+		super();
 	}
 }
