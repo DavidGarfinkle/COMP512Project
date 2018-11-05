@@ -1,6 +1,5 @@
 package Server.RMI;
 
-import java.rmi.*;
 import java.rmi.RemoteException;
 import java.rmi.NotBoundException;
 import Server.Interface.*;
