@@ -33,7 +33,7 @@ public class RMIMiddleware extends Middleware {
 			try {
 
 				// Create a new Server object that routes to four RMs
-				RMIMiddleware middleware =new RMIMiddleware();
+				RMIMiddleware middleware = new RMIMiddleware();
 				middleware.connectServers();
 
 				// Dynamically generate the stub (client proxy)
@@ -130,7 +130,7 @@ public class RMIMiddleware extends Middleware {
 	}
 
 	public RMIMiddleware() throws RemoteException
-	{ 
+	{
 		super();
 	}
 }

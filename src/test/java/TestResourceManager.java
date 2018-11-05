@@ -2,16 +2,35 @@ package Tests;
 
 import java.rmi.RemoteException;
 import java.util.*;
+
 import org.junit.jupiter.api.*;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
 import Server.Common.*;
+import Server.RMI.*;
 
+@RunWith(Parameterized.class)
 public class TestResourceManager {
 
-    private ResourceManager rm = new ResourceManager("testResource");
+    // Prepare both ResourceManager and RMIReourceManager for tests
+    @Parameters
+    public static Collection<Object []> data() {
+      ResourceManager rm = new ResourceManager("testResourceManager");
+      RMIResourceManager rmRMI = new RMIResourceManager("testRMIResourceManager");
+      String[] args = new String[1];
+      rmRMI.main(args);
 
-    @BeforeEach
-    public void setUp() {
+      return Arrays.asList(new Object[][] {
+        { rm }, { rmRMI }
+      });
+    }
+
+    private ResourceManager rm;
+
+    public TestResourceManager(ResourceManager rm){
+      this.rm = rm;
     }
 
     @Test
