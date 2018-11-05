@@ -64,6 +64,14 @@ public class LockManager
 
 						if (bConvert.get(0) == true) {
 							//TODO: Lock conversion 
+							// what needs to be done here? (conversion from READ to WRITE has been granted)
+							// does the lockTable need to be updated?
+							this.lockTable.remove(xLockObject);
+							this.lockTable.remove(dataLockObject);
+							xLockObject.setLockType(TransactionLockObject.LockType.LOCK_WRITE)
+							dataLockObject.setLockType(TransactionLockObject.LockType.LOCK_WRITE)
+							this.lockTable.add(xLockObject);
+							this.lockTable.add(dataLockObject);
 							// Trace.info("LM::lock(" + xid + ", " + data + ", " + lockType + ") converted");
 						} else {
 							// Lock request that is not lock conversion
@@ -228,6 +236,41 @@ public class LockManager
 					// Seeing the comments at the top of this function might be helpful
 
 					//TODO: Lock conversion
+					// vivek
+
+					if(l_dataLockObject.getLockType() == TransactionLockObject.LockType.LOCK_READ){
+						// txn already has lock and its type is a READ (now it wants a WRITE)
+						// need to check other txns
+						// if there exists another txn which has a lock on this data object (READ or WRITE), deny lock
+						// perhaps could be more efficient: all i need to check if the size of vect is greater than 1?
+						// cuz then there exists more than just this txn that has a lock on this data object, in which case --> return true
+						int j = 0;
+						while(j<=size){
+							if (i == j){
+								j++;
+								continue;
+							}
+
+							DataLockObject temp_dataLockObject = (DataLockObject)vect.elementAt(j);
+
+							if (temp_dataLockObject.getLockType() == TransactionLockObject.LockType.LOCK_WRITE ||
+							temp_dataLockObject.getLockType() == TransactionLockObject.LockType.LOCK_READ){
+								// some other txn has a lock on it (doesnt matter if its a READ or a WRITE)
+								// WRITE lock cannot be granted to this txn
+								Trace.info("LM::lockConflict(" + dataLockObject.getXId() + ", " + dataLockObject.getDataName() + ") Want WRITE, someone has READ or WRITE");
+								return true;
+							}
+							j++;
+						}
+						// there doesnt exist any other txn but this one which has a lock on this data object.
+						// therefore, existing lock (READ) can be converted (to WRITE)
+						bitset.set(0,true)
+					}
+
+					else if(l_dataLockObject.getLockType() == TransactionLockObject.LockType.LOCK_WRITE){
+						// txn already has lock and its type if a WRITE (now it wants a WRITE) (redundant request)
+						throw new RedundantLockRequestException(dataLockObject.getXId(), "redundant WRITE lock request");
+					}
 				}
 			} 
 			else if (dataLockObject.getLockType() == TransactionLockObject.LockType.LOCK_READ)
