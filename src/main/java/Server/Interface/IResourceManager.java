@@ -2,6 +2,7 @@ package Server.Interface;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import Server.LockManager.*;
 
 import java.util.*;
 
