@@ -62,7 +62,6 @@ public class Middleware implements IResourceManager {
     return true;
   }
 
-
   public boolean addFlight(int xid, int flightnumber, int flightSeats, int flightPrice)
       throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info("RM::addFlight(" + xid + ", " + flightnumber + ", " + flightSeats + ", $"
