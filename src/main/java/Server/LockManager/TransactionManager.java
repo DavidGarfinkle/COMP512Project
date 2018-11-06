@@ -8,10 +8,15 @@ public class TransactionManager {
 
   private static TPHashTable activeTransactions = new TPHashTable(TransactionManager.TABLE_SIZE);
 
-  public void TransactionManager(){
+  private static IncrementingInteger txidPicker = new IncrementingInteger();
+
+  public void TransactionManager() {
   }
 
   public boolean start(ResourceManager rm) throws RemoteException {
-    
+      int txid = txidPicker.pick();
+      TransactionObject tx = new TransactionObject(txid);
+
+
   }
 }
