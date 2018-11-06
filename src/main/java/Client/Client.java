@@ -413,6 +413,36 @@ public abstract class Client
 				}
 				break;
 			}
+			case Start: {
+				checkArgumentsCount(0, arguments.size());
+
+				System.out.println("Starting a new transaction");
+				String txid = m_resourceManager.Start();
+				System.out.println("Transaction started on transaction manager, received txid: " + txid);
+				break;
+			}
+			case Commit: {
+				checkArgumentsCount(0, arguments.size());
+
+				System.out.println("Committing the current transaction");
+				if(m_resourceManager.commit()) {
+					System.out.println("Transaction committed");
+				} else {
+					System.out.println("Transaction could not be committed");
+				}
+				break;
+			}
+			case Abort: {
+				checkArgumentsCount(0, arguments.size());
+
+				System.out.println("Aborting the current transaction");
+				if(m_resourceManager.abort()) {
+					System.out.println("Transaction Aborted");
+				} else {
+					System.out.println("Transaction could not be aborted");
+				}
+				break;
+			}
 			case Quit:
 				checkArgumentsCount(1, arguments.size());
 
