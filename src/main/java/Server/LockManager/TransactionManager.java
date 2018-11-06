@@ -28,7 +28,7 @@ public class TransactionManager {
       }
       // Overloaded put() will allocate new vector if first times
       // also will only add distinct ResourceManagers to the vector hashed at txid
-      involvedResourceManagers.put(tx.getXId(), resourceManagers);
+      //involvedResourceManagers.put(tx.getXId(), resourceManagers);
 
       return txid;
   }

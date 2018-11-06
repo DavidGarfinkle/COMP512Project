@@ -5,6 +5,8 @@ import Server.LockManager.*;
 import java.rmi.RemoteException;
 import java.util.*;
 
+import utils.*;
+
 public class Middleware implements IResourceManager {
 
   protected IResourceManager flightRM;
@@ -12,9 +14,9 @@ public class Middleware implements IResourceManager {
   protected IResourceManager roomRM;
 
   // Transaction Manager
-  protected static TPHashTable activeTransactions = new TPHashTable(TransactionManager.TABLE_SIZE);
+  protected static Hashtable<Integer, TransactionObject> activeTransactions = new Hashtable<Integer, TransactionObject>();
   protected static RMHashtable involvedResourceManagers = new RMHashtable();
-  protected static IncrementingInteger txidPicker = new IncrementingInteger();
+  protected static IncrementingInteger xidPicker = new IncrementingInteger();
 
   public Middleware() throws RemoteException {
   }
@@ -28,38 +30,40 @@ public class Middleware implements IResourceManager {
 
   public int start() throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info("RM::start called");
-    int txid = txidPicker.pick();
-    TransactionObject tx = new TimeObject(txid);
+    int xid = xidPicker.pick();
+    TransactionObject tx = new TimeObject(xid);
 
     if (!activeTransactions.contains(tx)){
-      activeTransactions.add(tx);
+      activeTransactions.put(xid, tx);
     }
 
-    // Overloaded put() will allocate new vector if first times
-    // also will only add distinct ResourceManagers to the vector hashed at txid
-    //involvedResourceManagers.put(tx.getXId(), resourceManagers);
-
-    return txid;
+    return xid;
   }
 
   public boolean commit(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info("RM::commit called");
+		if (!activeTransactions.containsKey(xid)){
+			throw new InvalidTransactionException(xid, "Middleware cannot commit a transaction that has not been initialized");
+		}
 
-    for (ResourceManager rm : involvedResourceManagers.get(xid)) {
-      rm.commit(txid);
+    if (involvedResourceManagers.containsKey(xid)) {
+      for (IResourceManager rm : involvedResourceManagers.get(xid)) {
+        rm.commit(xid);
+      }
     }
 
     return true;
   }
 
-  public boolean abort(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+  public void abort(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info("RM::abort called");
+		if (!activeTransactions.containsKey(xid)){
+			throw new InvalidTransactionException(xid, "Middleware cannot abort a transaction that has not been initialized");
+		}
 
-    for (ResourceManager rm : involvedResourceManagers.get(xid)) {
-      rm.abort(txid);
+    for (IResourceManager rm : involvedResourceManagers.get(xid)) {
+      rm.abort(xid);
     }
-
-    return true;
   }
 
   public boolean addFlight(int xid, int flightnumber, int flightSeats, int flightPrice)
@@ -67,6 +71,9 @@ public class Middleware implements IResourceManager {
     Trace.info("RM::addFlight(" + xid + ", " + flightnumber + ", " + flightSeats + ", $"
         + flightPrice + ") called");
     involvedResourceManagers.put(xid, flightRM);
+		if (!activeTransactions.containsKey(xid)){
+			throw new InvalidTransactionException(xid, "Middleware cannot add flight to uninitialized transaction");
+		}
     return flightRM.addFlight(xid, flightnumber, flightSeats, flightPrice);
   }
 
@@ -88,6 +95,12 @@ public class Middleware implements IResourceManager {
   public int newCustomer(int xid)
       throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info("RM::newCustomer(" + xid + ") called");
+		if (!activeTransactions.containsKey(xid)){
+			throw new InvalidTransactionException(xid, "Middleware cannot add flight to uninitialized transaction");
+		}
+    involvedResourceManagers.put(xid, roomRM);
+    involvedResourceManagers.put(xid, flightRM);
+    involvedResourceManagers.put(xid, carRM);
     int cid = flightRM.newCustomer(xid);
     boolean roomSuccess = roomRM.newCustomer(xid, cid);
     boolean carSuccess = carRM.newCustomer(xid, cid);
@@ -97,6 +110,9 @@ public class Middleware implements IResourceManager {
   public boolean newCustomer(int xid, int cid)
       throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info("RM::newCustomer(" + xid + ", " + cid + ") called");
+    involvedResourceManagers.put(xid, roomRM);
+    involvedResourceManagers.put(xid, flightRM);
+    involvedResourceManagers.put(xid, carRM);
     return flightRM.newCustomer(xid, cid) && roomRM.newCustomer(xid, cid) && carRM.newCustomer(xid, cid);
   }
 
@@ -126,6 +142,7 @@ public class Middleware implements IResourceManager {
 
   public int queryFlight(int xid, int flightNumber)
       throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+    involvedResourceManagers.put(xid, flightRM);
     Trace.info("RM::queryFlight(" + xid + ", " + flightNumber + ") called");
     return flightRM.queryFlight(xid, flightNumber);
   }
@@ -169,6 +186,7 @@ public class Middleware implements IResourceManager {
   public boolean reserveFlight(int xid, int cid, int flightNumber)
       throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info("RM::reserveFlight(" + xid + ", " + cid + ", " + flightNumber + ") called");
+    involvedResourceManagers.put(xid, flightRM);
     return flightRM.reserveFlight(xid, cid, flightNumber);
   }
 

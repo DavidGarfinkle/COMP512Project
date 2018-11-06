@@ -5,6 +5,8 @@
 
 package Server.Common;
 
+import java.rmi.RemoteException;
+
 import Server.Interface.*;
 import Server.LockManager.*;
 
@@ -14,7 +16,7 @@ public class ResourceManager implements IResourceManager
 {
 	protected String m_name = "";
 	protected RMHashMap m_data = new RMHashMap();
-	protected HashMap<Integer, RMHashMap> m_data_tx = new HashMap<Integer, RMHashMap>();
+	protected Hashtable<Integer, RMHashMap> m_data_tx = new Hashtable<Integer, RMHashMap>();
 
 	public ResourceManager(String p_name)
 	{
@@ -25,7 +27,9 @@ public class ResourceManager implements IResourceManager
 	protected RMItem readData(int xid, String key)
 	{
 		synchronized(m_data) {
-			RMItem item = m_data.get(key);
+			// Always ensure the hashtable has an entry for xid or else commit will throw null pointer
+			backupIfFirstOperation(xid);
+			RMItem item = m_data_tx.get(xid).get(key);
 			if (item != null) {
 				return (RMItem)item.clone();
 			}
@@ -37,7 +41,8 @@ public class ResourceManager implements IResourceManager
 	protected void writeData(int xid, String key, RMItem value)
 	{
 		synchronized(m_data) {
-			m_data.put(key, value);
+			backupIfFirstOperation(xid);
+			m_data_tx.get(xid).put(key, value);
 		}
 	}
 
@@ -45,7 +50,8 @@ public class ResourceManager implements IResourceManager
 	protected void removeData(int xid, String key)
 	{
 		synchronized(m_data) {
-			m_data.remove(key);
+			backupIfFirstOperation(xid);
+			m_data_tx.get(xid).remove(key);
 		}
 	}
 
@@ -76,18 +82,32 @@ public class ResourceManager implements IResourceManager
 		}
 	}
 
-	protected boolean start(int xid) {
-		m_data_tx.put(xid, m_data.clone());
+	// dummy method
+	public int start() throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+		return 0;
 	}
 
-	protected boolean commit(int xid) {
-		m_data_tx.remove(xid);
-		return true
+	public void backupIfFirstOperation(int xid) {
+		if (!m_data_tx.containsKey(xid)) {
+			m_data_tx.put(xid, (RMHashMap)m_data.clone());
+		}
 	}
 
-	protected boolean abort(int xid) {
+	public boolean commit(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+		Trace.info("RM::commit(" + xid + ") called");
+		if (!m_data_tx.containsKey(xid)) {
+			throw new InvalidTransactionException(xid, m_name + "cannot commit a transaction that has not been initialized");
+		}
 		m_data = m_data_tx.get(xid);
 		return true;
+	}
+
+	public void abort(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+		if (!m_data_tx.containsKey(xid)){
+			throw new InvalidTransactionException(xid, m_name + "cannot abort a transaction that has not been initialized");
+		}
+		m_data_tx.remove(xid);
+		throw new TransactionAbortedException(xid, "Transaction was aborted!");
 	}
 
 	// Query the number of available seats/rooms/cars

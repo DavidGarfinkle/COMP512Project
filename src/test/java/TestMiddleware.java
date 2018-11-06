@@ -5,6 +5,7 @@ import java.util.*;
 import org.junit.jupiter.api.*;
 
 import Server.Common.*;
+import Server.LockManager.*;
 
 import utils.*;
 
@@ -16,7 +17,8 @@ public class TestMiddleware {
     Middleware mw;
 
     @BeforeEach
-    public void setUp() throws RemoteException {
+    public void setUp()
+        throws RemoteException, TransactionAbortedException, InvalidTransactionException {
       this.flightRM = new ResourceManager("Flight");
       this.carRM = new ResourceManager("Car");
       this.roomRM = new ResourceManager("Room");
@@ -24,37 +26,52 @@ public class TestMiddleware {
     }
 
     @Test
-    public void testReserveFlight() throws RemoteException {
+    public void testReserveFlight()
+        throws RemoteException, TransactionAbortedException, InvalidTransactionException {
 
-      int customerId = 0;
-      int flightId = 1;
-      int flightSeats = 100;
-      int txid = 0;
-      int remainingSeats;
+      int flightId = 1; int flightSeats = 100;
 
-      customerId = this.mw.newCustomer(txid);
-      this.mw.addFlight(txid, flightId, flightSeats, 100);
-      this.mw.reserveFlight(customerId, customerId, flightId);
+      int txid = mw.start();
+      int customerId = mw.newCustomer(txid);
+      mw.addFlight(txid, flightId, flightSeats, 100);
+      mw.commit(txid);
 
-      remainingSeats = this.mw.queryFlight(0, flightId);
-      Assertions.assertEquals(flightSeats-1, remainingSeats, "Flight seat numbers differ");
+      txid = mw.start();
+      mw.reserveFlight(txid, customerId, flightId);
+      mw.commit(txid);
+
+      int remainingSeats = mw.queryFlight(mw.start(), flightId);
+      Assertions.assertEquals(flightSeats-1, remainingSeats, "Commited flight reservation should decrease seat numbers");
     }
 
     @Test
-    public void testBundleInsufficientResources() throws RemoteException {
-      int customerId = this.mw.newCustomer(1);
+    public void testBundleInsufficientResources()
+        throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+      Trace.info("testBundleInsufficientResources\n\n");
+
+      int txid;
+
+      txid = mw.start();
+      int customerId = mw.newCustomer(1);
+      mw.commit(txid);
+
       Vector<String> flightNumbers = new Vector<String>();
       flightNumbers.add("1");
       flightNumbers.add("2");
 
-      boolean res = this.mw.bundle(0, customerId, flightNumbers, "mtl", true, true);
+      txid = mw.start();
+      boolean res = mw.bundle(txid, customerId, flightNumbers, "mtl", true, true);
+      mw.commit(txid);
       Assertions.assertEquals(res, false, "Bundle should fail due to inadequate resources");
     }
 
     @Test
-    public void testBundleSufficientResources() throws RemoteException {
+    public void testBundleSufficientResources()
+        throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+      Trace.info("testBundleSufficientResources\n\n");
 
-      IncrementingInteger txid = new IncrementingInteger();
+      int txid;
+
       Vector<String> flightNumbers = new Vector<String>();
       flightNumbers.add("1");
       flightNumbers.add("2");
@@ -63,20 +80,30 @@ public class TestMiddleware {
       boolean car = true;
       boolean room = true;
 
-      int customerId = this.mw.newCustomer(1);
+      txid = mw.start();
+      int customerId = mw.newCustomer(txid);
+      mw.commit(txid);
 
+      txid = mw.start();
       // Add flights
       for (String flightNum : flightNumbers) {
-        this.mw.addFlight(txid.pick(), Integer.parseInt(flightNum), 100, 100);
+        mw.addFlight(txid, Integer.parseInt(flightNum), 100, 100);
       }
 
       // Add cars
-      this.mw.addCars(txid.pick(), location, 100, 100);
+      mw.addCars(txid, location, 100, 100);
 
       // Add rooms
-      this.mw.addRooms(txid.pick(), location, 100, 100);
+      mw.addRooms(txid, location, 100, 100);
 
-      boolean res = this.mw.bundle(txid.pick(), customerId, flightNumbers, location, car, room);
-      Assertions.assertEquals(res, true, "Bundle should succeed");
+      boolean res = mw.bundle(txid, customerId, flightNumbers, location, car, room);
+      mw.commit(txid);
+      Assertions.assertEquals(true, res, "Bundle should succeed");
+
+      int cars = mw.queryCars(mw.start(), location);
+      Assertions.assertEquals(99, cars);
+
+      int rooms = mw.queryRooms(mw.start(), location);
+      Assertions.assertEquals(99, rooms);
     }
 }

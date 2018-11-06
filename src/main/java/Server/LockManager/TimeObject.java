@@ -10,12 +10,12 @@ public class TimeObject extends TransactionObject
 	// The data members inherited are
 	// TransactionObject:: private int m_xid;
 
-	TimeObject()
+	public TimeObject()
 	{
 		super();
 	}
 
-	TimeObject(int xid)
+	public TimeObject(int xid)
 	{
 		super(xid);
 	}
