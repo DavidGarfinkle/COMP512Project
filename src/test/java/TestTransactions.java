@@ -26,20 +26,6 @@ public class TestTransactions {
     }
 
     @Test
-    public void testAddFlight()
-        throws RemoteException, TransactionAbortedException, InvalidTransactionException {
-      int flightId = 1; int flightSeats = 100;
-      int txid = mw.start();
-      int customerId = mw.newCustomer(txid);
-      mw.addFlight(txid, flightId, flightSeats, 100);
-      mw.commit(txid);
-
-      int queryxid = mw.start();
-      int remainingSeats = mw.queryFlight(queryxid, flightId);
-      Assertions.assertEquals(flightSeats, remainingSeats, "We should have successfully added " + flightSeats + " flight seats.");
-    }
-
-    @Test
     public void testUninitializedTransaction()
         throws RemoteException, TransactionAbortedException, InvalidTransactionException {
       try {

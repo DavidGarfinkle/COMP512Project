@@ -30,20 +30,80 @@ public class TestMiddleware {
         throws RemoteException, TransactionAbortedException, InvalidTransactionException {
       Trace.info("===========================================================");
       Trace.info("testReserveFlight");
+      boolean res;
 
       int flightId = 1; int flightSeats = 100;
 
       int txid = mw.start();
       int customerId = mw.newCustomer(txid);
-      mw.addFlight(txid, flightId, flightSeats, 100);
+      res = mw.addFlight(txid, flightId, flightSeats, 100);
+      Assertions.assertEquals(true, res, "addFlight() should succeed");
       mw.commit(txid);
 
       txid = mw.start();
-      mw.reserveFlight(txid, customerId, flightId);
+      res = mw.reserveFlight(txid, customerId, flightId);
+      Assertions.assertEquals(true, res, "reserveFlight() should succeed");
       mw.commit(txid);
 
       int remainingSeats = mw.queryFlight(mw.start(), flightId);
       Assertions.assertEquals(flightSeats-1, remainingSeats, "Commited flight reservation should decrease seat numbers");
+    }
+
+    @Test
+    public void testAddFlight()
+        throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+      Trace.info("===========================================================");
+      Trace.info("testAddFlight");
+
+      boolean res;
+      int flightId = 1; int flightSeats = 100;
+      int txid = mw.start();
+      int customerId = mw.newCustomer(txid);
+      res = mw.addFlight(txid, flightId, flightSeats, 100);
+      Assertions.assertEquals(true, res, "addFlight() should succeed");
+      mw.commit(txid);
+
+      int queryxid = mw.start();
+      int remainingSeats = mw.queryFlight(queryxid, flightId);
+      Assertions.assertEquals(flightSeats, remainingSeats, "We should have successfully added " + flightSeats + " flight seats.");
+    }
+
+    @Test
+    public void testReserveRoomWithNonexistentCustomer()
+        throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+      Trace.info("===========================================================");
+      Trace.info("testReserveRoomWithNonexistentCustomer");
+      int numRooms = 5;
+      int price = 100;
+      String location = "mtl";
+      int txid;
+      boolean res;
+
+      txid = mw.start();
+      res = mw.addRooms(txid, location, numRooms, price);
+      Assertions.assertEquals(true, res, "addRooms() should succeed");
+
+      res = mw.reserveRoom(txid, 0, location);
+      Assertions.assertEquals(false, res, "ReserveRoom() should fail when passed a nonexistent customerID.");
+    }
+
+    @Test
+    public void testReserveCar()
+        throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+      Trace.info("===========================================================");
+      Trace.info("testReserveCar");
+      int numCars = 5;
+      int price = 100;
+      String location = "mtl";
+      int txid, customerID;
+
+      txid = mw.start();
+      customerID = mw.newCustomer(txid);
+      mw.addCars(txid, location, numCars, price);
+      mw.reserveCar(txid, customerID, location);
+      mw.commit(txid);
+
+      Assertions.assertEquals(numCars-1, mw.queryCars(mw.start(), location));
     }
 
     @Test
