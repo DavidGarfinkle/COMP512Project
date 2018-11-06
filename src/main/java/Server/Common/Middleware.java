@@ -4,21 +4,20 @@ import Server.Interface.*;
 import java.rmi.RemoteException;
 import java.util.*;
 
-public abstract class Middleware implements IResourceManager {
+public class Middleware implements IResourceManager {
 
-  protected static IResourceManager flightRM;
-  protected static IResourceManager carRM;
-  protected static IResourceManager roomRM;
-  protected static IResourceManager customerRM;
-
-  protected int s_serverPort = 1099;
-  protected String s_rmiPrefix = "group28";
+  protected IResourceManager flightRM;
+  protected IResourceManager carRM;
+  protected IResourceManager roomRM;
 
   public Middleware() throws RemoteException {
-    this.connectServers();
   }
 
-  public abstract void connectServers() throws RemoteException;
+  public Middleware(IResourceManager flightRM, IResourceManager roomRM, IResourceManager carRM) throws RemoteException {
+    this.flightRM = flightRM;
+    this.carRM = carRM;
+    this.roomRM = roomRM;
+  }
 
   public boolean addFlight(int xid, int flightnumber, int flightSeats, int flightPrice)
       throws RemoteException {
@@ -41,12 +40,15 @@ public abstract class Middleware implements IResourceManager {
 
   public int newCustomer(int xid) throws RemoteException {
     Trace.info("RM::newCustomer(" + xid + ") called");
-    return customerRM.newCustomer(xid);
+    int cid = flightRM.newCustomer(xid);
+    boolean roomSuccess = roomRM.newCustomer(xid, cid);
+    boolean carSuccess = carRM.newCustomer(xid, cid);
+    return cid;
   }
 
   public boolean newCustomer(int xid, int cid) throws RemoteException {
     Trace.info("RM::newCustomer(" + xid + ", " + cid + ") called");
-    return customerRM.newCustomer(xid, cid);
+    return flightRM.newCustomer(xid, cid) && roomRM.newCustomer(xid, cid) && carRM.newCustomer(xid, cid);
   }
 
   public boolean deleteFlight(int xid, int flightnumber) throws RemoteException {
@@ -66,7 +68,7 @@ public abstract class Middleware implements IResourceManager {
 
   public boolean deleteCustomer(int xid, int cid) throws RemoteException {
     Trace.info("RM::deleteCustomer(" + xid + ", " + cid + ") called");
-    return customerRM.deleteCustomer(xid, cid);
+    return flightRM.deleteCustomer(xid, cid) && roomRM.deleteCustomer(xid, cid) && carRM.deleteCustomer(xid, cid);
   }
 
   public int queryFlight(int xid, int flightNumber) throws RemoteException {
@@ -86,7 +88,7 @@ public abstract class Middleware implements IResourceManager {
 
   public String queryCustomerInfo(int xid, int cid) throws RemoteException {
     Trace.info("RM::queryCustomerInfo(" + xid + ", " + cid + ") called");
-    return customerRM.queryCustomerInfo(xid, cid);
+    return flightRM.queryCustomerInfo(xid, cid) + roomRM.queryCustomerInfo(xid, cid) + carRM.queryCustomerInfo(xid, cid);
   }
 
   public int queryFlightPrice(int xid, int flightNumber) throws RemoteException {
@@ -106,20 +108,17 @@ public abstract class Middleware implements IResourceManager {
 
   public boolean reserveFlight(int xid, int cid, int flightNumber) throws RemoteException {
     Trace.info("RM::reserveFlight(" + xid + ", " + cid + ", " + flightNumber + ") called");
-    boolean temp = flightRM.reserveFlight(xid, cid, flightNumber);
-    return customerRM.reserveFlight(xid, cid, flightNumber);
+    return flightRM.reserveFlight(xid, cid, flightNumber);
   }
 
   public boolean reserveCar(int xid, int cid, String location) throws RemoteException {
     Trace.info("RM::reserveCar(" + xid + ", " + cid + ", " + location + ") called");
-    boolean temp = carRM.reserveCar(xid, cid, location);
-    return customerRM.reserveCar(xid, cid, location);
+    return carRM.reserveCar(xid, cid, location);
   }
 
   public boolean reserveRoom(int xid, int cid, String location) throws RemoteException {
     Trace.info("RM::reserveRoom(" + xid + ", " + cid + ", " + location + ") called");
-    boolean temp = roomRM.reserveRoom(xid, cid, location);
-    return customerRM.reserveRoom(xid, cid, location);
+    return roomRM.reserveRoom(xid, cid, location);
   }
 
   public boolean bundle(int id, int customerID, Vector<String> flightNumbers, String location,
