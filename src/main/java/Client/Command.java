@@ -29,9 +29,9 @@ public enum Command {
 
 	Bundle("Book N flight numbers, and optionally a room and/or car at a location", "<xid>,<CustomerID>,<FlightNumber1>...<FlightNumberN>,<Location>,<Car-Y/N>,<Room-Y/N>"),
 
-	Start("Start a transaction and gets the txid to use from the transaction manager", "")
-	Commit("Commit the current active transaction", "")
-	Abort("Abort the current active transaction", "")
+	Start("Start a transaction and gets the txid to use from the transaction manager", ""),
+	Commit("Commit the current active transaction", ""),
+	Abort("Abort the current active transaction", ""),
 
 	Quit("Exit the client application", "");
 

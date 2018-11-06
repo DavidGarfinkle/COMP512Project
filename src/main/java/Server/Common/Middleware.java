@@ -121,6 +121,21 @@ public class Middleware implements IResourceManager {
     return roomRM.reserveRoom(xid, cid, location);
   }
 
+  public int start() throws RemoteException {
+    Trace.info("RM::start called");
+    return 1;
+  }
+
+  public boolean commit() throws RemoteException {
+    Trace.info("RM::commit called");
+    return true;
+  }
+
+  public boolean abort() throws RemoteException {
+    Trace.info("RM::abort called");
+    return true;
+  }
+
   public boolean bundle(int id, int customerID, Vector<String> flightNumbers, String location,
       boolean car, boolean room) throws RemoteException {
     Trace.info("RM::bundle(" + id + ", " + customerID + ", " + flightNumbers + ", " + location + ", "
