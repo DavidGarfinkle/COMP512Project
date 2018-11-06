@@ -415,6 +415,41 @@ public abstract class Client
 				}
 				break;
 			}
+			case Start: {
+				checkArgumentsCount(1, arguments.size());
+
+				System.out.println("Starting a new transaction");
+				int xid = m_resourceManager.start();
+				if (xid == -1) {
+					System.out.println("Could not start a new transaction.");
+				} else {
+					System.out.println("Transaction started on transaction manager, received txid: " + xid);
+				}
+				break;
+			}
+			case Commit: {
+				checkArgumentsCount(2, arguments.size());
+				int xid = Integer.parseInt(arguments.elementAt(1));
+				System.out.println("Committing the current transaction");
+				if(m_resourceManager.commit(xid)) {
+					System.out.println("Transaction committed");
+				} else {
+					System.out.println("Transaction could not be committed");
+				}
+				break;
+			}
+			case Abort: {
+				checkArgumentsCount(2, arguments.size());
+				int xid = Integer.parseInt(arguments.elementAt(1));
+				System.out.println("Aborting the current transaction");
+				try {
+					m_resourceManager.abort(xid);
+					System.out.println("Transaction Aborted");
+				} catch (Exception e) {
+					System.out.println("Transaction could not be aborted, " + e);
+				}
+				break;
+			}
 			case Quit:
 				checkArgumentsCount(1, arguments.size());
 
