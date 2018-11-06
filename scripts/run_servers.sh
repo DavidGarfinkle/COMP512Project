@@ -1,7 +1,7 @@
 #!/bin/bash 
 
 #TODO: SPECIFY THE HOSTNAMES OF 4 CS MACHINES (lab1-1, cs-2, etc...)
-MACHINES=(cs-2.cs.mcgill.ca cs-7.cs.mcgill.ca cs-4.cs.mcgill.ca cs-8.cs.mcgill.ca cs-5.cs.mcgill.ca)
+MACHINES=(mimi.cs.mcgill.ca mimi.cs.mcgill.ca mimi.cs.mcgill.ca mimi.cs.mcgill.ca mimi.cs.mcgill.ca)
 
 tmux new-session \; \
     rename-session servers \; \

@@ -414,7 +414,7 @@ public abstract class Client
 				break;
 			}
 			case Start: {
-				checkArgumentsCount(0, arguments.size());
+				checkArgumentsCount(1, arguments.size());
 
 				System.out.println("Starting a new transaction");
 				int txid = m_resourceManager.start();
@@ -426,7 +426,7 @@ public abstract class Client
 				break;
 			}
 			case Commit: {
-				checkArgumentsCount(0, arguments.size());
+				checkArgumentsCount(1, arguments.size());
 
 				System.out.println("Committing the current transaction");
 				if(m_resourceManager.commit()) {
@@ -437,7 +437,7 @@ public abstract class Client
 				break;
 			}
 			case Abort: {
-				checkArgumentsCount(0, arguments.size());
+				checkArgumentsCount(1, arguments.size());
 
 				System.out.println("Aborting the current transaction");
 				if(m_resourceManager.abort()) {

@@ -1,4 +1,4 @@
-#Usage: ./run_server.sh [<rmi_name>]
+#Usage: scripts/run_server.sh [<rmi_name>]
 
 scripts/run_rmi.sh > /dev/null 2>&1
 java -cp target/classes -Djava.security.policy=java.policy -Djava.rmi.server.codebase=file:$(pwd)/../src/main/java/Server/  Server.RMI.RMIResourceManager $1
