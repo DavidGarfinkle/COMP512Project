@@ -15,7 +15,7 @@ public class TestResourceManager {
     public void setUp() {
     }
 
-    @Test
+    @Disabled
     public void testNewCustomer() throws RemoteException, TransactionAbortedException, InvalidTransactionException {
         int customerId = 0;
         rm.newCustomer(customerId);

@@ -18,6 +18,8 @@ public class ResourceManager implements IResourceManager
 	protected RMHashMap m_data = new RMHashMap();
 	protected Hashtable<Integer, RMHashMap> m_data_tx = new Hashtable<Integer, RMHashMap>();
 
+	protected LockManager m_lock = new LockManager();
+
 	public ResourceManager(String p_name)
 	{
 		m_name = p_name;
@@ -28,7 +30,6 @@ public class ResourceManager implements IResourceManager
 	{
 		synchronized(m_data) {
 			// Always ensure the hashtable has an entry for xid or else commit will throw null pointer
-			backupIfFirstOperation(xid);
 			RMItem item = m_data_tx.get(xid).get(key);
 			if (item != null) {
 				return (RMItem)item.clone();
@@ -41,7 +42,6 @@ public class ResourceManager implements IResourceManager
 	protected void writeData(int xid, String key, RMItem value)
 	{
 		synchronized(m_data) {
-			backupIfFirstOperation(xid);
 			m_data_tx.get(xid).put(key, value);
 		}
 	}
@@ -50,7 +50,6 @@ public class ResourceManager implements IResourceManager
 	protected void removeData(int xid, String key)
 	{
 		synchronized(m_data) {
-			backupIfFirstOperation(xid);
 			m_data_tx.get(xid).remove(key);
 		}
 	}
@@ -87,22 +86,27 @@ public class ResourceManager implements IResourceManager
 		return 0;
 	}
 
-	public void backupIfFirstOperation(int xid) {
-		if (!m_data_tx.containsKey(xid)) {
+	public void start(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+		Trace.info("RM(" + m_name + ")::start(" + xid + ") called");
+		if (m_data_tx.containsKey(xid)) {
+			throw new InvalidTransactionException(xid, "Cannot start a transaction already underway");
+		}
+		else {
 			m_data_tx.put(xid, (RMHashMap)m_data.clone());
 		}
 	}
 
 	public boolean commit(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
-		Trace.info("RM::commit(" + xid + ") called");
+		Trace.info("RM(" + m_name + ")::commit(" + xid + ") called");
 		if (!m_data_tx.containsKey(xid)) {
-			throw new InvalidTransactionException(xid, m_name + "cannot commit a transaction that has not been initialized");
+			throw new InvalidTransactionException(xid, m_name + " ResourceManager cannot commit a transaction that has not been initialized");
 		}
 		m_data = m_data_tx.get(xid);
 		return true;
 	}
 
 	public void abort(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+		Trace.info("RM(" + m_name + ")::abort(" + xid + ") called");
 		if (!m_data_tx.containsKey(xid)){
 			throw new InvalidTransactionException(xid, m_name + "cannot abort a transaction that has not been initialized");
 		}
@@ -347,7 +351,7 @@ public class ResourceManager implements IResourceManager
 	public int newCustomer(int xid)
 			throws RemoteException, TransactionAbortedException, InvalidTransactionException
 	{
-					Trace.info("RM::newCustomer(" + xid + ") called");
+		Trace.info("RM::newCustomer(" + xid + ") called");
 		// Generate a globally unique ID for the new customer
 		int cid = Integer.parseInt(String.valueOf(xid) +
 			String.valueOf(Calendar.getInstance().get(Calendar.MILLISECOND)) +
@@ -434,6 +438,17 @@ public class ResourceManager implements IResourceManager
 	public boolean bundle(int xid, int customerId, Vector<String> flightNumbers, String location, boolean car, boolean room)
 			throws RemoteException, TransactionAbortedException, InvalidTransactionException
 	{
+		return false;
+	}
+
+	public boolean equals(Object rmObj) {
+		if (rmObj == null) return false;
+
+		if (rmObj instanceof ResourceManager) {
+			if (m_name == ((ResourceManager)rmObj).getName()) {
+				return true;
+			}
+		}
 		return false;
 	}
 

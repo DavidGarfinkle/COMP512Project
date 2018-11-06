@@ -28,6 +28,8 @@ public class TestMiddleware {
     @Test
     public void testReserveFlight()
         throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+      Trace.info("===========================================================");
+      Trace.info("testReserveFlight");
 
       int flightId = 1; int flightSeats = 100;
 
@@ -47,12 +49,13 @@ public class TestMiddleware {
     @Test
     public void testBundleInsufficientResources()
         throws RemoteException, TransactionAbortedException, InvalidTransactionException {
-      Trace.info("testBundleInsufficientResources\n\n");
+      Trace.info("===========================================================");
+      Trace.info("testBundleInsufficientResources");
 
       int txid;
 
       txid = mw.start();
-      int customerId = mw.newCustomer(1);
+      int customerId = mw.newCustomer(txid);
       mw.commit(txid);
 
       Vector<String> flightNumbers = new Vector<String>();
@@ -68,6 +71,7 @@ public class TestMiddleware {
     @Test
     public void testBundleSufficientResources()
         throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+      Trace.info("===========================================================");
       Trace.info("testBundleSufficientResources\n\n");
 
       int txid;
