@@ -14,6 +14,7 @@ public class ResourceManager implements IResourceManager
 {
 	protected String m_name = "";
 	protected RMHashMap m_data = new RMHashMap();
+	protected HashMap<Integer, RMHashMap> m_data_tx = new HashMap<Integer, RMHashMap>();
 
 	public ResourceManager(String p_name)
 	{
@@ -73,6 +74,20 @@ public class ResourceManager implements IResourceManager
 				return false;
 			}
 		}
+	}
+
+	protected boolean start(int xid) {
+		m_data_tx.put(xid, m_data.clone());
+	}
+
+	protected boolean commit(int xid) {
+		m_data_tx.remove(xid);
+		return true
+	}
+
+	protected boolean abort(int xid) {
+		m_data = m_data_tx.get(xid);
+		return true;
 	}
 
 	// Query the number of available seats/rooms/cars
