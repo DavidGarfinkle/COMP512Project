@@ -68,8 +68,8 @@ public class LockManager
 							// does the lockTable need to be updated?
 							this.lockTable.remove(xLockObject);
 							this.lockTable.remove(dataLockObject);
-							xLockObject.setLockType(TransactionLockObject.LockType.LOCK_WRITE)
-							dataLockObject.setLockType(TransactionLockObject.LockType.LOCK_WRITE)
+							xLockObject.setLockType(TransactionLockObject.LockType.LOCK_WRITE);
+							dataLockObject.setLockType(TransactionLockObject.LockType.LOCK_WRITE);
 							this.lockTable.add(xLockObject);
 							this.lockTable.add(dataLockObject);
 							// Trace.info("LM::lock(" + xid + ", " + data + ", " + lockType + ") converted");
@@ -264,7 +264,7 @@ public class LockManager
 						}
 						// there doesnt exist any other txn but this one which has a lock on this data object.
 						// therefore, existing lock (READ) can be converted (to WRITE)
-						bitset.set(0,true)
+						bitset.set(0,true);
 					}
 
 					else if(l_dataLockObject.getLockType() == TransactionLockObject.LockType.LOCK_WRITE){
