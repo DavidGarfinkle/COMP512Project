@@ -416,22 +416,22 @@ public abstract class Client
 				break;
 			}
 			case Start: {
-				checkArgumentsCount(0, arguments.size());
+				checkArgumentsCount(1, arguments.size());
 
 				System.out.println("Starting a new transaction");
-				int txid = m_resourceManager.start();
-				if (txid == -1) {
+				int xid = m_resourceManager.start();
+				if (xid == -1) {
 					System.out.println("Could not start a new transaction.");
 				} else {
-					System.out.println("Transaction started on transaction manager, received txid: " + txid);
+					System.out.println("Transaction started on transaction manager, received txid: " + xid);
 				}
 				break;
 			}
 			case Commit: {
-				checkArgumentsCount(0, arguments.size());
-
+				checkArgumentsCount(2, arguments.size());
+				int xid = Integer.parseInt(arguments.elementAt(1));
 				System.out.println("Committing the current transaction");
-				if(m_resourceManager.commit()) {
+				if(m_resourceManager.commit(xid)) {
 					System.out.println("Transaction committed");
 				} else {
 					System.out.println("Transaction could not be committed");
@@ -439,13 +439,14 @@ public abstract class Client
 				break;
 			}
 			case Abort: {
-				checkArgumentsCount(0, arguments.size());
-
+				checkArgumentsCount(2, arguments.size());
+				int xid = Integer.parseInt(arguments.elementAt(1));
 				System.out.println("Aborting the current transaction");
-				if(m_resourceManager.abort()) {
+				try {
+					m_resourceManager.abort(xid);
 					System.out.println("Transaction Aborted");
-				} else {
-					System.out.println("Transaction could not be aborted");
+				} catch (Exception e) {
+					System.out.println("Transaction could not be aborted, " + e);
 				}
 				break;
 			}
