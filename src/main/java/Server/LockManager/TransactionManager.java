@@ -21,7 +21,7 @@ public class TransactionManager {
 
   public int start(ResourceManager[] resourceManagers) throws RemoteException {
       int txid = txidPicker.pick();
-      TransactionObject tx = new TransactionObject(txid);
+      TransactionObject tx = new TimeObject(txid);
 
       if (!activeTransactions.contains(tx)){
         activeTransactions.add(tx);
