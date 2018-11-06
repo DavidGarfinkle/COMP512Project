@@ -35,7 +35,7 @@ public class RMIResourceManager extends ResourceManager {
 	{
 		// Dynamically generate the stub (client proxy)
 		IResourceManager resourceManager = (IResourceManager)UnicastRemoteObject.exportObject(this, 0);
-		registry = createOrGetRegistry(1099);
+		registry = createOrGetRegistry(1088);
 
 		// Bind the remote object's stub in the registry
 		try {
