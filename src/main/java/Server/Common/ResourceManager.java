@@ -372,6 +372,21 @@ public class ResourceManager implements IResourceManager
 		return reserveItem(xid, customerID, Room.getKey(location), location);
 	}
 
+	public int start() {
+    Trace.info("RM::start called");
+    return 1;
+  }
+
+  public boolean commit() {
+    Trace.info("RM::commit called");
+    return true;
+  }
+
+  public boolean abort() {
+    Trace.info("RM::abort called");
+    return true;
+  }
+
 	// Reserve bundle
 	public boolean bundle(int xid, int customerId, Vector<String> flightNumbers, String location, boolean car, boolean room)
 	{

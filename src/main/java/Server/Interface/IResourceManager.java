@@ -194,10 +194,32 @@ public interface IResourceManager extends Remote
 	throws RemoteException; 
 
     /**
+     * Start a new transaction by sending a request to middleware and transaction manager
+     *
+     * @return The transaction number of the new started transaction, or -1 if failed
+     */
+    public int start() throws RemoteException;
+    
+    /**
+     * Commit the current transaction.
+     *
+     * @return Success
+     */
+    public boolean commit() throws RemoteException;
+
+    /**
+     * Abort the current transaction.
+     *
+     * @return Success
+     */
+    public boolean abort() throws RemoteException;
+    
+    /**
      * Reserve a bundle for the trip.
      *
      * @return Success
      */
+
     public boolean bundle(int id, int customerID, Vector<String> flightNumbers, String location, boolean car, boolean room)
 	throws RemoteException; 
 

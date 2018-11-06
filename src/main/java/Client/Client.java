@@ -417,8 +417,12 @@ public abstract class Client
 				checkArgumentsCount(0, arguments.size());
 
 				System.out.println("Starting a new transaction");
-				String txid = m_resourceManager.Start();
-				System.out.println("Transaction started on transaction manager, received txid: " + txid);
+				int txid = m_resourceManager.start();
+				if (txid == -1) {
+					System.out.println("Could not start a new transaction.");
+				} else {
+					System.out.println("Transaction started on transaction manager, received txid: " + txid);
+				}
 				break;
 			}
 			case Commit: {
