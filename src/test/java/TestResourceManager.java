@@ -16,13 +16,13 @@ public class TestResourceManager {
     }
 
     @Disabled
-    public void testNewCustomer() throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+    public void testNewCustomer() throws RemoteException, TransactionAbortedException, InvalidTransactionException, DeadlockException {
         int customerId = 0;
         rm.newCustomer(customerId);
     }
 
     @Disabled
-    public void testReserveFlight() throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+    public void testReserveFlight() throws RemoteException, TransactionAbortedException, InvalidTransactionException, DeadlockException {
       int customerId = 0;
       int flightId = 1;
       int flightSeats = 100;

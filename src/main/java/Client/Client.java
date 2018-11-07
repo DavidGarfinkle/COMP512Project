@@ -69,7 +69,7 @@ public abstract class Client
 	}
 
 	public void execute(Command cmd, Vector<String> arguments)
-			throws RemoteException, NumberFormatException, TransactionAbortedException, InvalidTransactionException
+			throws RemoteException, NumberFormatException, TransactionAbortedException, InvalidTransactionException, DeadlockException
 	{
 		switch (cmd)
 		{
