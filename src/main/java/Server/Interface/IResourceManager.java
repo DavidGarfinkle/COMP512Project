@@ -24,13 +24,29 @@ import java.util.*;
 
 public interface IResourceManager extends Remote
 {
-  	public int start() throws RemoteException, TransactionAbortedException, InvalidTransactionException;
-  	public void start(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException;
+    public int start() throws RemoteException, TransactionAbortedException, InvalidTransactionException;
 
-  	public boolean commit(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException;
+    /**
+     * Start a new transaction by sending a request to middleware and transaction manager
+     *
+     * @return The transaction number of the new started transaction, or -1 if failed
+     */
+    public void start(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException;
+    
+    /**
+     * Commit the current transaction.
+     *
+     * @return Success
+     */
+    public boolean commit(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException;
 
-  	public void abort(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException;
-
+    /**
+     * Abort the current transaction.
+     *
+     * @return Success
+     */
+    public void abort(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException;
+    
     /**
      * Add seats to a flight.
      *
@@ -206,6 +222,7 @@ public interface IResourceManager extends Remote
      *
      * @return Success
      */
+
     public boolean bundle(int id, int customerID, Vector<String> flightNumbers, String location, boolean car, boolean room)
 	throws RemoteException, TransactionAbortedException, InvalidTransactionException;
 

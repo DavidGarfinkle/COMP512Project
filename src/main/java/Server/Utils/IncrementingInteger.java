@@ -1,10 +1,10 @@
-package utils;
+package Server.Utils;
 
 public class IncrementingInteger {
 
   int x;
 
-  public void IncrementingInteger() {
+  public IncrementingInteger() {
     this.x = 0;
   }
 

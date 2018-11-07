@@ -5,8 +5,6 @@ import Server.LockManager.*;
 import java.rmi.RemoteException;
 import java.util.*;
 
-import utils.*;
-
 public class Middleware implements IResourceManager {
 
   protected IResourceManager flightRM;
@@ -14,10 +12,7 @@ public class Middleware implements IResourceManager {
   protected IResourceManager roomRM;
 
   // Transaction Manager
-  protected static Hashtable<Integer, TransactionObject> activeTransactions = new Hashtable<Integer, TransactionObject>();
-  //protected static RMHashtable involvedResourceManagers = new RMHashtable();
-  protected static Hashtable<Integer, Vector<IResourceManager>> involvedResourceManagers = new Hashtable<Integer, Vector<IResourceManager>>();
-  protected static IncrementingInteger xidPicker = new IncrementingInteger();
+  protected TransactionManager TM;
 
   public Middleware() throws RemoteException {
   }
@@ -27,6 +22,7 @@ public class Middleware implements IResourceManager {
     this.flightRM = flightRM;
     this.carRM = carRM;
     this.roomRM = roomRM;
+    this.TM = new TransactionManager();
   }
 
   // dummy method
@@ -35,82 +31,34 @@ public class Middleware implements IResourceManager {
 
   public int start() throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info("MW::start called");
-    int xid = xidPicker.pick();
-    TransactionObject tx = new TimeObject(xid);
 
-    if (!activeTransactions.contains(tx)) {
-      activeTransactions.put(xid, tx);
-    }
-
-    return xid;
+    return TM.start();
   }
 
   public boolean commit(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info("MW::commit called");
-		if (!activeTransactions.containsKey(xid)){
-			throw new InvalidTransactionException(xid, "Middleware cannot commit a transaction that has not been initialized");
-		}
 
-    if (involvedResourceManagers.containsKey(xid)) {
-      for (IResourceManager rm : involvedResourceManagers.get(xid)) {
-        rm.commit(xid);
-      }
-    }
-
-    return true;
+    return TM.commit(xid);
   }
 
   public void abort(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info("MW::abort called");
-		if (!activeTransactions.containsKey(xid)){
-			throw new InvalidTransactionException(xid, "Middleware cannot abort a transaction that has not been initialized");
-		}
 
-    for (IResourceManager rm : involvedResourceManagers.get(xid)) {
-      rm.abort(xid);
-    }
-  }
-
-  public void checkTransaction(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
-		if (!activeTransactions.containsKey(xid)){
-			throw new InvalidTransactionException(xid, "Middleware cannot add operation to uninitialized transaction");
-		}
-  }
-
-  public void processTransaction(int xid, IResourceManager rm) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
-    Trace.info("MW::processTransaction(" + xid + ", " + rm.getName() + ")");
-
-    // A transaction must be initialized with start() before it can handle operations
-    checkTransaction(xid);
-
-    // Init resource manager vector
-    if (!involvedResourceManagers.containsKey(xid)) {
-      Trace.info("MW::processTransaction --- initializing RM vector for tx " + xid);
-      involvedResourceManagers.put(xid, new Vector<IResourceManager>());
-    }
-
-    // If this tx doesn't have this rm, add the rm, and init its tx
-    if (!involvedResourceManagers.get(xid).contains(rm)) {
-      Trace.info("MW::processTransaction --- add & start " + rm.getName() + " to RM vector for tx " + xid);
-      rm.start(xid);
-      involvedResourceManagers.get(xid).add(rm);
-    }
+		TM.abort(xid);
   }
 
   public boolean addFlight(int xid, int flightnumber, int flightSeats, int flightPrice)
       throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info("MW::addFlight(" + xid + ", " + flightnumber + ", " + flightSeats + ", $"
         + flightPrice + ") called");
-    //involvedResourceManagers.put(xid, flightRM);
-    //checkTransaction(xid);
-    processTransaction(xid, flightRM);
+    TM.processTransaction(xid, flightRM);
     return flightRM.addFlight(xid, flightnumber, flightSeats, flightPrice);
   }
 
   public boolean addCars(int xid, String location, int numCars, int price)
       throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info("MW::addCars(" + xid + ", " + location + ", " + numCars + ", $" + price + ") called");
-    processTransaction(xid, carRM);
+    TM.processTransaction(xid, carRM);
     return carRM.addCars(xid, location, numCars, price);
   }
 
@@ -118,16 +66,16 @@ public class Middleware implements IResourceManager {
       throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info(
         "MW::addRooms(" + xid + ", " + location + ", " + numRooms + ", $" + price + ") called");
-    processTransaction(xid, roomRM);
+    TM.processTransaction(xid, roomRM);
     return roomRM.addRooms(xid, location, numRooms, price);
   }
 
   public int newCustomer(int xid)
       throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info("MW::newCustomer(" + xid + ") called");
-    processTransaction(xid, flightRM);
-    processTransaction(xid, roomRM);
-    processTransaction(xid, carRM);
+    TM.processTransaction(xid, flightRM);
+    TM.processTransaction(xid, roomRM);
+    TM.processTransaction(xid, carRM);
     int cid = flightRM.newCustomer(xid);
     boolean roomSuccess = roomRM.newCustomer(xid, cid);
     boolean carSuccess = carRM.newCustomer(xid, cid);
@@ -137,90 +85,90 @@ public class Middleware implements IResourceManager {
   public boolean newCustomer(int xid, int cid)
       throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info("MW::newCustomer(" + xid + ", " + cid + ") called");
-    processTransaction(xid, carRM);
-    processTransaction(xid, flightRM);
-    processTransaction(xid, roomRM);
+    TM.processTransaction(xid, carRM);
+    TM.processTransaction(xid, flightRM);
+    TM.processTransaction(xid, roomRM);
     return flightRM.newCustomer(xid, cid) && roomRM.newCustomer(xid, cid) && carRM.newCustomer(xid, cid);
   }
 
   public boolean deleteFlight(int xid, int flightnumber)
       throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info("MW::deleteFlight(" + xid + ", " + flightnumber + ") called");
-    processTransaction(xid, flightRM);
+    TM.processTransaction(xid, flightRM);
     return flightRM.deleteFlight(xid, flightnumber);
   }
 
   public boolean deleteCars(int xid, String location)
       throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info("MW::deleteCars(" + xid + ", " + location + ") called");
-    processTransaction(xid, carRM);
+    TM.processTransaction(xid, carRM);
     return carRM.deleteCars(xid, location);
   }
 
   public boolean deleteRooms(int xid, String location)
       throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info("MW::deleteRooms(" + xid + ", " + location + ") called");
-    processTransaction(xid, roomRM);
+    TM.processTransaction(xid, roomRM);
     return roomRM.deleteRooms(xid, location);
   }
 
   public boolean deleteCustomer(int xid, int cid)
       throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info("MW::deleteCustomer(" + xid + ", " + cid + ") called");
-    processTransaction(xid, roomRM);
-    processTransaction(xid, carRM);
-    processTransaction(xid, flightRM);
+    TM.processTransaction(xid, roomRM);
+    TM.processTransaction(xid, carRM);
+    TM.processTransaction(xid, flightRM);
     return flightRM.deleteCustomer(xid, cid) && roomRM.deleteCustomer(xid, cid) && carRM.deleteCustomer(xid, cid);
   }
 
   public int queryFlight(int xid, int flightNumber)
       throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info("MW::queryFlight(" + xid + ", " + flightNumber + ") called");
-    processTransaction(xid, flightRM);
+    TM.processTransaction(xid, flightRM);
     return flightRM.queryFlight(xid, flightNumber);
   }
 
   public int queryCars(int xid, String location)
       throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info("MW::queryCars(" + xid + ", " + location + ") called");
-    processTransaction(xid, carRM);
+    TM.processTransaction(xid, carRM);
     return carRM.queryCars(xid, location);
   }
 
   public int queryRooms(int xid, String location)
       throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info("MW::queryRooms(" + xid + ", " + location + ") called");
-    processTransaction(xid, roomRM);
+    TM.processTransaction(xid, roomRM);
     return roomRM.queryRooms(xid, location);
   }
 
   public String queryCustomerInfo(int xid, int cid)
       throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info("MW::queryCustomerInfo(" + xid + ", " + cid + ") called");
-    processTransaction(xid, carRM);
-    processTransaction(xid, flightRM);
-    processTransaction(xid, roomRM);
+    TM.processTransaction(xid, carRM);
+    TM.processTransaction(xid, flightRM);
+    TM.processTransaction(xid, roomRM);
     return flightRM.queryCustomerInfo(xid, cid) + roomRM.queryCustomerInfo(xid, cid) + carRM.queryCustomerInfo(xid, cid);
   }
 
   public int queryFlightPrice(int xid, int flightNumber)
       throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info("MW::queryFlightPrice(" + xid + ", " + flightNumber + ") called");
-    processTransaction(xid, flightRM);
+    TM.processTransaction(xid, flightRM);
     return flightRM.queryFlightPrice(xid, flightNumber);
   }
 
   public int queryCarsPrice(int xid, String location)
       throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info("MW::queryCarsPrice(" + xid + ", " + location + ") called");
-    processTransaction(xid, carRM);
+    TM.processTransaction(xid, carRM);
     return carRM.queryCarsPrice(xid, location);
   }
 
   public int queryRoomsPrice(int xid, String location)
       throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info("MW::queryRoomsPrice(" + xid + ", " + location + ") called");
-    processTransaction(xid, roomRM);
+    TM.processTransaction(xid, roomRM);
     return roomRM.queryRoomsPrice(xid, location);
   }
 
@@ -228,21 +176,21 @@ public class Middleware implements IResourceManager {
       throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info("MW::reserveFlight(" + xid + ", " + cid + ", " + flightNumber + ") called");
     //involvedResourceManagers.put(xid, flightRM);
-    processTransaction(xid, flightRM);
+    TM.processTransaction(xid, flightRM);
     return flightRM.reserveFlight(xid, cid, flightNumber);
   }
 
   public boolean reserveCar(int xid, int cid, String location)
       throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info("MW::reserveCar(" + xid + ", " + cid + ", " + location + ") called");
-    processTransaction(xid, carRM);
+    TM.processTransaction(xid, carRM);
     return carRM.reserveCar(xid, cid, location);
   }
 
   public boolean reserveRoom(int xid, int cid, String location)
       throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info("MW::reserveRoom(" + xid + ", " + cid + ", " + location + ") called");
-    processTransaction(xid, roomRM);
+    TM.processTransaction(xid, roomRM);
     return roomRM.reserveRoom(xid, cid, location);
   }
 
@@ -250,9 +198,9 @@ public class Middleware implements IResourceManager {
       boolean car, boolean room) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info("MW::bundle(" + xid + ", " + customerID + ", " + flightNumbers + ", " + location + ", "
         + car + ", " + room + ") called");
-    processTransaction(xid, flightRM);
-    processTransaction(xid, roomRM);
-    processTransaction(xid, carRM);
+    TM.processTransaction(xid, flightRM);
+    TM.processTransaction(xid, roomRM);
+    TM.processTransaction(xid, carRM);
 
     if (car) {
       if (!reserveCar(xid, customerID, location)) {

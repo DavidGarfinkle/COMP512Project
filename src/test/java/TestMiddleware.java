@@ -7,7 +7,7 @@ import org.junit.jupiter.api.*;
 import Server.Common.*;
 import Server.LockManager.*;
 
-import utils.*;
+import Server.Utils.*;
 
 public class TestMiddleware {
 
