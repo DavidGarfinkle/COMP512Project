@@ -17,17 +17,24 @@ public class TransactionManager {
   protected static Hashtable<Integer, TransactionObject> activeTransactions = new Hashtable<Integer, TransactionObject>();
   protected static Hashtable<Integer, Vector<IResourceManager>> involvedResourceManagers = new Hashtable<Integer, Vector<IResourceManager>>();
   protected static IncrementingInteger xidPicker = new IncrementingInteger();
+  protected static Hashtable<Integer, TimerTask> timeoutTable = new Hashtable<Integer, TimerTask>();
+  private static Timer timer;
+  private static int TIMEOUT_LENGTH = 30000;
 
   public TransactionManager() {
+    timer = new Timer();
   }
 
   public int start() throws RemoteException, TransactionAbortedException, InvalidTransactionException {
       int xid = xidPicker.pick();
-      TransactionObject tx = new TimeObject(xid);
+      TimeObject tx = new TimeObject(xid);
 
       if (!activeTransactions.containsKey(xid)){
         activeTransactions.put(xid, tx);
       }
+
+      startTimer(xid);
+      
       // Overloaded put() will allocate new vector if first times
       // also will only add distinct ResourceManagers to the vector hashed at txid
       //involvedResourceManagers.put(tx.getXId(), resourceManagers);
@@ -52,6 +59,7 @@ public class TransactionManager {
       involvedResourceManagers.remove(xid);
       activeTransactions.remove(xid);
     }
+    finishTimer(xid);
 
     return true;
   }
@@ -71,6 +79,7 @@ public class TransactionManager {
     }
     involvedResourceManagers.remove(xid);
     activeTransactions.remove(xid);
+    finishTimer(xid);
   }
 
   public void checkTransaction(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
@@ -83,7 +92,8 @@ public class TransactionManager {
     Trace.info("MW::processTransaction(" + xid + ", " + rm.getName() + ")");
 
     // A transaction must be initialized with start() before it can handle operations
-    this.checkTransaction(xid);
+    checkTransaction(xid);
+    resetTimer(xid);
 
     // Init resource manager vector
     if (!involvedResourceManagers.containsKey(xid)) {
@@ -97,5 +107,26 @@ public class TransactionManager {
       rm.start(xid);
       involvedResourceManagers.get(xid).add(rm);
     }
+  }
+
+  private void resetTimer(int xid) {
+    // cancel previous TimerTask
+    TimerTask timeout = timeoutTable.get(xid);
+    timeout.cancel();
+
+    // schedule new TimerTask
+    timeout = new Timeout(xid, this); 
+    timer.schedule(timeout, TIMEOUT_LENGTH);
+    timeoutTable.put(xid, timeout);
+  }
+
+  private void startTimer(int xid) {
+    TimerTask timeout = new Timeout(xid, this);
+    timer.schedule(timeout, TIMEOUT_LENGTH);
+    timeoutTable.put(xid, timeout);
+  }
+
+  private void finishTimer(int xid) {
+    timeoutTable.get(xid).cancel();
   }
 }
