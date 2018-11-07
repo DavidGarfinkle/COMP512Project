@@ -26,16 +26,12 @@ public enum Command {
 	ReserveFlight("Reserve a flight number for a customer", "<xid>,<CustomerID>,<FlightNumber>"),
 	ReserveCar("Reserve a car for a customer at a location", "<xid>,<CustomerID>,<Location>"),
 	ReserveRoom("Reserve a room for a customer at a location", "<xid>,<CustomerID>,<Location>"),
-	
-	Start("Start a transaction and gets the txid to use from the transaction manager", ""),
-	Commit("Commit a transaction", "<xid>"),
-	Abort("Abort a transaction", "<xid>"),
-		
-	Bundle("Book N flight numbers, and optionally a room and/or car at a location", "<xid>,<CustomerID>,<FlightNumber1>...<FlightNumberN>,<Location>,<Car-Y/N>,<Room-Y/N>"),
 
 	Start("Start a transaction and gets the txid to use from the transaction manager", ""),
 	Commit("Commit a transaction", "<xid>"),
 	Abort("Abort a transaction", "<xid>"),
+
+	Bundle("Book N flight numbers, and optionally a room and/or car at a location", "<xid>,<CustomerID>,<FlightNumber1>...<FlightNumberN>,<Location>,<Car-Y/N>,<Room-Y/N>"),
 
 	Quit("Exit the client application", "");
 
@@ -64,7 +60,7 @@ public enum Command {
 	{
 		String ret = "Commands supported by the client:\n";
 		for (Command cmd : Command.values())
-		{	 
+		{
 			ret += "\t" + cmd.name() + "\n";
 		}
 		ret += "use help,<CommandName> for more detailed information";
@@ -77,4 +73,4 @@ public enum Command {
 		ret += "Usage: " + name() + "," + m_args;
 		return ret;
 	}
-}             
+}
