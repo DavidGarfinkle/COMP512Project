@@ -74,4 +74,7 @@ public class TransactionLockObject extends TransactionObject
 	{
 		return m_lockType;
 	}
+	public LockType getReadLock(){
+		return LockType.LOCK_READ;
+	}
 }

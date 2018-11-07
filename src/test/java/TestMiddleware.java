@@ -18,7 +18,7 @@ public class TestMiddleware {
 
     @BeforeEach
     public void setUp()
-        throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+        throws RemoteException, TransactionAbortedException, InvalidTransactionException, DeadlockException {
       this.flightRM = new ResourceManager("Flight");
       this.carRM = new ResourceManager("Car");
       this.roomRM = new ResourceManager("Room");
@@ -27,7 +27,7 @@ public class TestMiddleware {
 
     @Test
     public void testReserveFlight()
-        throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+        throws RemoteException, TransactionAbortedException, InvalidTransactionException, DeadlockException {
       Trace.info("===========================================================");
       Trace.info("testReserveFlight");
       boolean res;
@@ -51,7 +51,7 @@ public class TestMiddleware {
 
     @Test
     public void testAddFlight()
-        throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+        throws RemoteException, TransactionAbortedException, InvalidTransactionException, DeadlockException {
       Trace.info("===========================================================");
       Trace.info("testAddFlight");
 
@@ -70,7 +70,7 @@ public class TestMiddleware {
 
     @Test
     public void testReserveRoomWithNonexistentCustomer()
-        throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+        throws RemoteException, TransactionAbortedException, InvalidTransactionException, DeadlockException {
       Trace.info("===========================================================");
       Trace.info("testReserveRoomWithNonexistentCustomer");
       int numRooms = 5;
@@ -89,7 +89,7 @@ public class TestMiddleware {
 
     @Test
     public void testReserveCar()
-        throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+        throws RemoteException, TransactionAbortedException, InvalidTransactionException, DeadlockException {
       Trace.info("===========================================================");
       Trace.info("testReserveCar");
       int numCars = 5;
@@ -108,7 +108,7 @@ public class TestMiddleware {
 
     @Test
     public void testBundleInsufficientResources()
-        throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+        throws RemoteException, TransactionAbortedException, InvalidTransactionException, DeadlockException {
       Trace.info("===========================================================");
       Trace.info("testBundleInsufficientResources");
 
@@ -130,7 +130,7 @@ public class TestMiddleware {
 
     @Test
     public void testBundleSufficientResources()
-        throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+        throws RemoteException, TransactionAbortedException, InvalidTransactionException, DeadlockException {
       Trace.info("===========================================================");
       Trace.info("testBundleSufficientResources\n\n");
 

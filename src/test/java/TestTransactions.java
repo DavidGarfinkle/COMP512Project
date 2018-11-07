@@ -18,7 +18,7 @@ public class TestTransactions {
 
     @BeforeEach
     public void setUp()
-        throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+        throws RemoteException, TransactionAbortedException, InvalidTransactionException, DeadlockException {
       this.flightRM = new ResourceManager("Flight");
       this.carRM = new ResourceManager("Car");
       this.roomRM = new ResourceManager("Room");
@@ -27,7 +27,7 @@ public class TestTransactions {
 
     @Test
     public void testUninitializedTransaction()
-        throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+        throws RemoteException, TransactionAbortedException, InvalidTransactionException, DeadlockException {
       try {
         int txid = 0; int flightId = 1; int flightSeats = 100;
         int customerId = this.mw.newCustomer(txid);
@@ -41,7 +41,7 @@ public class TestTransactions {
 
     @Test
     public void testUncommitedTransaction()
-        throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+        throws RemoteException, TransactionAbortedException, InvalidTransactionException, DeadlockException {
 
       int flightId = 1; int flightSeats = 100;
 
