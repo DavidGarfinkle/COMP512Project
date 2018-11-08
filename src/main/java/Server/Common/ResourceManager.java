@@ -30,9 +30,9 @@ public class ResourceManager implements IResourceManager
 		try{
 			if (m_lock.Lock(xid,key,TransactionLockObject.LockType.LOCK_READ)){
 				// if read lock granted
+				m_data_tx.put(xid, (RMHashMap)m_data.clone());
 				synchronized(m_data) {
 					// Always ensure the hashtable has an entry for xid or else commit will throw null pointer
-					m_data_tx.put(xid, (RMHashMap)m_data.clone());
 					RMItem item = m_data_tx.get(xid).get(key);
 					if (item != null) {
 						return (RMItem)item.clone();
@@ -53,8 +53,8 @@ public class ResourceManager implements IResourceManager
 	{
 		if (m_lock.Lock(xid,key,TransactionLockObject.LockType.LOCK_WRITE)){
 			// if write lock granted
+			m_data_tx.put(xid, (RMHashMap)m_data.clone());
 			synchronized(m_data) {
-				m_data_tx.put(xid, (RMHashMap)m_data.clone());
 				m_data_tx.get(xid).put(key, value);
 			}
 		}
@@ -65,8 +65,8 @@ public class ResourceManager implements IResourceManager
 	{
 		// if write lock granted
 		if (m_lock.Lock(xid,key,TransactionLockObject.LockType.LOCK_WRITE)){
+			m_data_tx.put(xid, (RMHashMap)m_data.clone());
 			synchronized(m_data) {
-				m_data_tx.put(xid, (RMHashMap)m_data.clone());
 				m_data_tx.get(xid).remove(key);
 			}
 		}
