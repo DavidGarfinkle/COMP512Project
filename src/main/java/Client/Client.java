@@ -61,6 +61,9 @@ public abstract class Client
 			catch (ConnectException|UnmarshalException e) {
 				System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0mConnection to server lost");
 			}
+			catch (InvalidTransactionException e) {
+				System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0m" + e.getLocalizedMessage());
+			}
 			catch (Exception e) {
 				System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0mUncaught exception");
 				e.printStackTrace();
