@@ -418,7 +418,7 @@ public abstract class Client
 			case Start: {
 				checkArgumentsCount(1, arguments.size());
 
-				System.out.println("Starting a new transaction");
+				System.out.println("Client::execute() Case 'Start': Starting a new transaction");
 				int xid = m_resourceManager.start();
 				if (xid == -1) {
 					System.out.println("Could not start a new transaction.");

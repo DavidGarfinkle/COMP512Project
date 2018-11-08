@@ -41,7 +41,7 @@ public class TestTransactions {
       }
     }
 
-    @Test
+    @Disabled
     public void testUncommitedTransaction()
         throws RemoteException, TransactionAbortedException, InvalidTransactionException, DeadlockException {
       Trace.info("===========================================================");

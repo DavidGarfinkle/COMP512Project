@@ -15,6 +15,7 @@ public class Middleware implements IResourceManager {
   protected TransactionManager TM;
 
   public Middleware() throws RemoteException {
+    this.TM = new TransactionManager();
   }
 
   public Middleware(IResourceManager flightRM, IResourceManager roomRM, IResourceManager carRM)

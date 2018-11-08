@@ -34,7 +34,7 @@ public class RMIMiddleware extends Middleware {
 			try {
 
 				// Create a new Server object that routes to four RMs
-				RMIMiddleware middleware =new RMIMiddleware();
+				RMIMiddleware middleware = new RMIMiddleware();
 				middleware.connectServers();
 
 				// Dynamically generate the stub (client proxy)
@@ -82,6 +82,8 @@ public class RMIMiddleware extends Middleware {
 						+ s_rmiPrefix + s_carServerName + "'");
 				System.out.println("'" + s_roomServerName + "' resource manager server ready and bound to '"
 						+ s_rmiPrefix + s_roomServerName + "'");
+				System.out.println("'" + s_middlewareName + "' middlware server ready and bound to '"
+            + s_rmiPrefix + s_middlewareName + "'");
 			} catch (Exception e) {
 				System.err
 						.println((char) 27 + "[31;1mServer exception: " + (char) 27 + "[0mUncaught exception");
