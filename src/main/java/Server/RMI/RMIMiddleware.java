@@ -24,6 +24,7 @@ public class RMIMiddleware extends Middleware {
 	private static String s_roomServer = "localhost";
 
 	public static void main(String args[]) {
+    Trace.info("RMIMW::main()");
 
 		if (args.length > 2) {
 			s_flightServer = args[0];
@@ -75,6 +76,7 @@ public class RMIMiddleware extends Middleware {
 						}
 					}
 				});
+        /*
 				System.out
 						.println("'" + s_flightServerName + "' resource manager server ready and bound to '"
 								+ s_rmiPrefix + s_flightServerName + "'");
@@ -82,6 +84,7 @@ public class RMIMiddleware extends Middleware {
 						+ s_rmiPrefix + s_carServerName + "'");
 				System.out.println("'" + s_roomServerName + "' resource manager server ready and bound to '"
 						+ s_rmiPrefix + s_roomServerName + "'");
+        */
 				System.out.println("'" + s_middlewareName + "' middlware server ready and bound to '"
             + s_rmiPrefix + s_middlewareName + "'");
 			} catch (Exception e) {
@@ -96,9 +99,13 @@ public class RMIMiddleware extends Middleware {
 				System.setSecurityManager(new SecurityManager());
 			}
 		}
+    else {
+      Trace.info("RMIMW::main() --- not enough arguments. Nothing done.");
+    }
 	}
 
 	public void connectServers() {
+    Trace.info("RMIMW::connectServers() called");
 		connectServer(s_flightServer, s_serverPort, s_flightServerName);
 		connectServer(s_carServer, s_serverPort, s_carServerName);
 		connectServer(s_roomServer, s_serverPort, s_roomServerName);
@@ -129,7 +136,7 @@ public class RMIMiddleware extends Middleware {
 				break;
 			} catch (NotBoundException | RemoteException | InterruptedException e) {
 				if (first) {
-				System.out.println("Waiting for '" + name + "' server [" + server + ":"
+				System.out.println("RMIMW::connectServer(" + server + ", " + port + ", " + name + ") --- Waiting for '" + name + "' server [" + server + ":"
 					+ port + "/" + s_rmiPrefix + name + "]");
 				first = false;
 				}

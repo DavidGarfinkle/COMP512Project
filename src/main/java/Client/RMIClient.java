@@ -10,13 +10,23 @@ import java.rmi.NotBoundException;
 import java.util.*;
 import java.io.*;
 
-public class RMIClient extends Client
+public class RMIClient extends Client implements Runnable
 {
 	private static String s_serverHost = "localhost";
 	private static int s_serverPort = 1099;
 	private static String s_serverName = "Server";
 
 	private static String s_rmiPrefix = "group28";
+
+	private static String[] args;
+
+	public RMIClient(String[] args) {
+		this.args = args;
+	}
+
+	public void run() {
+		main(args);
+	}
 
 	public static void main(String args[])
 	{
@@ -76,7 +86,7 @@ public class RMIClient extends Client
 				}
 				catch (NotBoundException|RemoteException e) {
 					if (first) {
-						System.out.println("Waiting for '" + name + "' server [" + server + ":" + port + "/" + s_rmiPrefix + name + "]");
+						System.out.println("RMIClient::connectServer(" + server + ", " + port + ", " + name + ") --- Waiting for '" + name + "' server [" + server + ":" + port + "/" + s_rmiPrefix + name + "]");
 						first = false;
 					}
 				}

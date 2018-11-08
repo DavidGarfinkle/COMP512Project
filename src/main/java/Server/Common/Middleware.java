@@ -15,11 +15,13 @@ public class Middleware implements IResourceManager {
   protected TransactionManager TM;
 
   public Middleware() throws RemoteException {
+    Trace.info("MW::Middleware() called --- constructor with no arguments");
     this.TM = new TransactionManager();
   }
 
   public Middleware(IResourceManager flightRM, IResourceManager roomRM, IResourceManager carRM)
       throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+    Trace.info("MW::Middleware(flightRM, roomRM, carRM) called --- constructor with 3 RM arguments");
     this.flightRM = flightRM;
     this.carRM = carRM;
     this.roomRM = roomRM;
