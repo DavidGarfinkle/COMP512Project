@@ -28,6 +28,8 @@ public class TestTransactions {
     @Test
     public void testUninitializedTransaction()
         throws RemoteException, TransactionAbortedException, InvalidTransactionException, DeadlockException {
+      Trace.info("===========================================================");
+      Trace.info("testUninitializedTransaction");
       try {
         int txid = 0; int flightId = 1; int flightSeats = 100;
         int customerId = this.mw.newCustomer(txid);
@@ -42,8 +44,11 @@ public class TestTransactions {
     @Test
     public void testUncommitedTransaction()
         throws RemoteException, TransactionAbortedException, InvalidTransactionException, DeadlockException {
+      Trace.info("===========================================================");
+      Trace.info("testUncommitedTransaction");
 
       int flightId = 1; int flightSeats = 100;
+      int queryxid, remainingSeats;
 
       int txid = mw.start();
       int customerId = mw.newCustomer(txid);
@@ -52,8 +57,9 @@ public class TestTransactions {
 
       mw.reserveFlight(mw.start(), customerId, flightId);
 
-      int queryxid = mw.start();
-      int remainingSeats = mw.queryFlight(queryxid, flightId);
+      queryxid = mw.start();
+      remainingSeats = mw.queryFlight(queryxid, flightId);
+      mw.commit(queryxid);
       Assertions.assertEquals(flightSeats, remainingSeats, "Uncommited change should not affect ResourceManager data");
     }
 }

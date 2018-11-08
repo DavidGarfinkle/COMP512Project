@@ -22,7 +22,7 @@ public class LockManager
 	public boolean Lock(int xid, String data, TransactionLockObject.LockType lockType) throws DeadlockException
 	{
 		// if any parameter is invalid, then return false
-		if (xid < 0) { 
+		if (xid < 0) {
 			return false;
 		}
 
@@ -30,7 +30,7 @@ public class LockManager
 			return false;
 		}
 
-		if (lockType == TransactionLockObject.LockType.LOCK_UNKNOWN) { 
+		if (lockType == TransactionLockObject.LockType.LOCK_UNKNOWN) {
 			return false;
 		}
 
@@ -63,7 +63,7 @@ public class LockManager
 						}
 
 						if (bConvert.get(0) == true) {
-							//TODO: Lock conversion 
+							//TODO: Lock conversion
 							// what needs to be done here? (conversion from READ to WRITE has been granted)
 							// does the lockTable need to be updated?
 							this.lockTable.remove(xLockObject);
@@ -87,7 +87,7 @@ public class LockManager
 					WaitLock(dataLockObject);
 				}
 			}
-		} 
+		}
 		catch (DeadlockException deadlock) {
 			throw deadlock;
 		}
@@ -95,7 +95,7 @@ public class LockManager
 			// Ignore redundant lock requests
 			Trace.info("LM::lock(" + xid + ", " + data + ", " + lockType + ") " + redundantlockrequest.getLocalizedMessage());
 			return true;
-		} 
+		}
 
 		return true;
 	}
@@ -164,15 +164,15 @@ public class LockManager
 									break;
 								}
 
-								this.waitTable.remove(waitLockObject);     
+								this.waitTable.remove(waitLockObject);
 								try {
 									synchronized(waitLockObject.getThread()) {
 										waitLockObject.getThread().notify();
-									}    
+									}
 								}
 								catch (Exception e) {
 									System.out.println("Exception on unlock\n" + e.getMessage());
-								}        
+								}
 							}
 
 							// Stop granting READ locks as soon as you find a WRITE lock
@@ -182,21 +182,21 @@ public class LockManager
 						else if (waitLockObject.getLockType() == TransactionLockObject.LockType.LOCK_READ)
 						{
 							// Remove interrupted thread from waitTable
-							this.waitTable.remove(waitLockObject);    
+							this.waitTable.remove(waitLockObject);
 
 							try {
 								synchronized (waitLockObject.getThread()) {
 									waitLockObject.getThread().notify();
-								}    
+								}
 							}
 							catch (Exception e) {
 								System.out.println("Exception e\n" + e.getMessage());
 							}
 						}
 					}
-				} 
+				}
 			}
-		} 
+		}
 
 		return true;
 	}
@@ -204,11 +204,12 @@ public class LockManager
 
 	// Returns true if the lock request on dataObj conflicts with already existing locks. If the lock request is a
 	// redundant one (for eg: if a transaction holds a read lock on certain data item and again requests for a read
-	// lock), then this is ignored. This is done by throwing RedundantLockRequestException which is handled 
-	// appropriately by the caller. If the lock request is a conversion from READ lock to WRITE lock, then bitset 
-	// is set. 
+	// lock), then this is ignored. This is done by throwing RedundantLockRequestException which is handled
+	// appropriately by the caller. If the lock request is a conversion from READ lock to WRITE lock, then bitset
+	// is set.
 	private boolean LockConflict(DataLockObject dataLockObject, BitSet bitset) throws DeadlockException, RedundantLockRequestException
 	{
+		Trace.info("LM::lockConflict(" + dataLockObject.getXId() + ", " + dataLockObject.getDataName() + ")");
 		Vector vect = this.lockTable.elements(dataLockObject);
 		int size = vect.size();
 
@@ -217,7 +218,7 @@ public class LockManager
 		{
 			DataLockObject l_dataLockObject = (DataLockObject)vect.elementAt(i);
 			if (dataLockObject.getXId() == l_dataLockObject.getXId())
-			{    
+			{
 				// The transaction already has a lock on this data item which means that it is either
 				// relocking it or is converting the lock
 				if (dataLockObject.getLockType() == TransactionLockObject.LockType.LOCK_READ)
@@ -240,7 +241,7 @@ public class LockManager
 
 					if(l_dataLockObject.getLockType() == TransactionLockObject.LockType.LOCK_READ){
 						// case (1)
-						Trace.info("looping over txns that have lock on:" + dataLockObject.getDataName());
+						Trace.info("LM::lockConflict() --- looping over txns that have lock on:" + dataLockObject.getDataName());
 						for (int j=0;j<size;j++){
 							DataLockObject temp_dataLockObject = (DataLockObject)vect.elementAt(j);
 							Trace.info("xid:	"+temp_dataLockObject.getXId());
@@ -249,8 +250,8 @@ public class LockManager
 								return true;
 							}
 						}
-						
-						Trace.info("conversion granted");
+
+						Trace.info("LM::lockConflict() --- conversion granted");
 						bitset.set(0,true);
 					}
 
@@ -259,7 +260,7 @@ public class LockManager
 						throw new RedundantLockRequestException(dataLockObject.getXId(), "redundant WRITE lock request");
 					}
 				}
-			} 
+			}
 			else if (dataLockObject.getLockType() == TransactionLockObject.LockType.LOCK_READ)
 			{
 				if (l_dataLockObject.getLockType() == TransactionLockObject.LockType.LOCK_WRITE)
@@ -321,13 +322,13 @@ public class LockManager
 			}
 			// Shouldn't be more than one time stamp per transaction because the transaction can be blocked
 			// on just one lock request
-		} 
+		}
 
 		// Suspend thread and wait until notified
 		synchronized (this.waitTable) {
 			if (!this.waitTable.contains(waitLockObject))
 		       	{
-				// Register this transaction in the waitTable if it is not already there 
+				// Register this transaction in the waitTable if it is not already there
 				this.waitTable.add(waitLockObject);
 			}
 			// Else lock manager already knows the transaction is waiting
