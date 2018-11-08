@@ -118,6 +118,7 @@ public class ResourceManager implements IResourceManager
 			throw new InvalidTransactionException(xid, m_name + " ResourceManager cannot commit a transaction that has not been initialized");
 		}
 		m_data = m_data_tx.get(xid);
+		m_lock.UnlockAll(xid);
 		return true;
 	}
 
@@ -127,6 +128,7 @@ public class ResourceManager implements IResourceManager
 			throw new InvalidTransactionException(xid, m_name + "cannot abort a transaction that has not been initialized");
 		}
 		m_data_tx.remove(xid);
+		m_lock.UnlockAll(xid);
 		throw new TransactionAbortedException(xid, "Transaction was aborted!");
 	}
 
