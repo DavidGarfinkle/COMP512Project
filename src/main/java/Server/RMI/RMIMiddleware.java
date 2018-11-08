@@ -10,7 +10,7 @@ import java.rmi.server.UnicastRemoteObject;
 
 public class RMIMiddleware extends Middleware {
 
-  private static int s_serverPort = 1088;
+  private static int s_serverPort = 1099;
 	private static String s_rmiPrefix = "group28";
 
 	private static String s_flightServerName = "Flight";
@@ -43,9 +43,9 @@ public class RMIMiddleware extends Middleware {
 				// same middleware interface
 				Registry l_registry;
 				try {
-					l_registry = LocateRegistry.createRegistry(1088);
+					l_registry = LocateRegistry.createRegistry(1099);
 				} catch (RemoteException e) {
-					l_registry = LocateRegistry.getRegistry(1088);
+					l_registry = LocateRegistry.getRegistry(1099);
 				}
 				final Registry registry = l_registry;
 				registry.rebind(s_rmiPrefix + s_flightServerName, middlewareEndpoint);
@@ -129,7 +129,7 @@ public class RMIMiddleware extends Middleware {
 	}
 
 	public RMIMiddleware() throws RemoteException
-	{ 
+	{
 		super();
 	}
 }
