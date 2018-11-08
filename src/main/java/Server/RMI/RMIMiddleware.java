@@ -75,6 +75,7 @@ public class RMIMiddleware extends Middleware {
 						}
 					}
 				});
+        /*
 				System.out
 						.println("'" + s_flightServerName + "' resource manager server ready and bound to '"
 								+ s_rmiPrefix + s_flightServerName + "'");
@@ -82,6 +83,7 @@ public class RMIMiddleware extends Middleware {
 						+ s_rmiPrefix + s_carServerName + "'");
 				System.out.println("'" + s_roomServerName + "' resource manager server ready and bound to '"
 						+ s_rmiPrefix + s_roomServerName + "'");
+        */
 				System.out.println("'" + s_middlewareName + "' middlware server ready and bound to '"
             + s_rmiPrefix + s_middlewareName + "'");
 			} catch (Exception e) {
