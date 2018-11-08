@@ -39,7 +39,11 @@ public class Middleware implements IResourceManager {
     TransactionObject tx = new TimeObject(xid);
 
     if (!activeTransactions.contains(tx)) {
+      Trace.info("MW::new txn");
       activeTransactions.put(xid, tx);
+    }
+    else{
+      Trace.info("MW::existing txn");
     }
 
     return xid;
