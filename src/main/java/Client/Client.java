@@ -97,11 +97,16 @@ public abstract class Client
 				int flightNum = toInt(arguments.elementAt(2));
 				int flightSeats = toInt(arguments.elementAt(3));
 				int flightPrice = toInt(arguments.elementAt(4));
-
-				if (m_resourceManager.addFlight(id, flightNum, flightSeats, flightPrice)) {
-					System.out.println("Flight added");
-				} else {
+				try {
+					if (m_resourceManager.addFlight(id, flightNum, flightSeats, flightPrice)) {
+						System.out.println("Flight added");
+					} else {
+						System.out.println("Flight could not be added");
+					}
+				}
+				catch (Exception e) {
 					System.out.println("Flight could not be added");
+					throw e;
 				}
 				break;
 			}
@@ -117,11 +122,16 @@ public abstract class Client
 				String location = arguments.elementAt(2);
 				int numCars = toInt(arguments.elementAt(3));
 				int price = toInt(arguments.elementAt(4));
-
-				if (m_resourceManager.addCars(id, location, numCars, price)) {
-					System.out.println("Cars added");
-				} else {
+				try {
+					if (m_resourceManager.addCars(id, location, numCars, price)) {
+						System.out.println("Cars added");
+					} else {
+						System.out.println("Cars could not be added");
+					}
+				}
+				catch (Exception e) {
 					System.out.println("Cars could not be added");
+					throw e;
 				}
 				break;
 			}
@@ -137,11 +147,16 @@ public abstract class Client
 				String location = arguments.elementAt(2);
 				int numRooms = toInt(arguments.elementAt(3));
 				int price = toInt(arguments.elementAt(4));
-
-				if (m_resourceManager.addRooms(id, location, numRooms, price)) {
-					System.out.println("Rooms added");
-				} else {
+				try {
+					if (m_resourceManager.addRooms(id, location, numRooms, price)) {
+						System.out.println("Rooms added");
+					} else {
+						System.out.println("Rooms could not be added");
+					}
+				}
+				catch (Exception e) {
 					System.out.println("Rooms could not be added");
+					throw e;
 				}
 				break;
 			}
@@ -180,11 +195,16 @@ public abstract class Client
 
 				int id = toInt(arguments.elementAt(1));
 				int flightNum = toInt(arguments.elementAt(2));
-
-				if (m_resourceManager.deleteFlight(id, flightNum)) {
-					System.out.println("Flight Deleted");
-				} else {
+				try {
+					if (m_resourceManager.deleteFlight(id, flightNum)) {
+						System.out.println("Flight Deleted");
+					} else {
+						System.out.println("Flight could not be deleted");
+					}
+				}
+				catch (Exception e) {
 					System.out.println("Flight could not be deleted");
+					throw e;
 				}
 				break;
 			}
@@ -196,11 +216,16 @@ public abstract class Client
 
 				int id = toInt(arguments.elementAt(1));
 				String location = arguments.elementAt(2);
-
-				if (m_resourceManager.deleteCars(id, location)) {
-					System.out.println("Cars Deleted");
-				} else {
+				try {
+					if (m_resourceManager.deleteCars(id, location)) {
+						System.out.println("Cars Deleted");
+					} else {
+						System.out.println("Cars could not be deleted");
+					}
+				}
+				catch (Exception e) {
 					System.out.println("Cars could not be deleted");
+					throw e;
 				}
 				break;
 			}
@@ -212,11 +237,16 @@ public abstract class Client
 
 				int id = toInt(arguments.elementAt(1));
 				String location = arguments.elementAt(2);
-
-				if (m_resourceManager.deleteRooms(id, location)) {
-					System.out.println("Rooms Deleted");
-				} else {
+				try {
+					if (m_resourceManager.deleteRooms(id, location)) {
+						System.out.println("Rooms Deleted");
+					} else {
+						System.out.println("Rooms could not be deleted");
+					}
+				}
+				catch (Exception e) {
 					System.out.println("Rooms could not be deleted");
+					throw e;
 				}
 				break;
 			}
@@ -228,11 +258,16 @@ public abstract class Client
 
 				int id = toInt(arguments.elementAt(1));
 				int customerID = toInt(arguments.elementAt(2));
-
-				if (m_resourceManager.deleteCustomer(id, customerID)) {
-					System.out.println("Customer Deleted");
-				} else {
+				try {
+					if (m_resourceManager.deleteCustomer(id, customerID)) {
+						System.out.println("Customer Deleted");
+					} else {
+						System.out.println("Customer could not be deleted");
+					}
+				}
+				catch (Exception e) {
 					System.out.println("Customer could not be deleted");
+					throw e;
 				}
 				break;
 			}
@@ -337,11 +372,16 @@ public abstract class Client
 				int id = toInt(arguments.elementAt(1));
 				int customerID = toInt(arguments.elementAt(2));
 				int flightNum = toInt(arguments.elementAt(3));
-
-				if (m_resourceManager.reserveFlight(id, customerID, flightNum)) {
-					System.out.println("Flight Reserved");
-				} else {
+				try {
+					if (m_resourceManager.reserveFlight(id, customerID, flightNum)) {
+						System.out.println("Flight Reserved");
+					} else {
+						System.out.println("Flight could not be reserved");
+					}
+				}
+				catch (Exception e) {
 					System.out.println("Flight could not be reserved");
+					throw e;
 				}
 				break;
 			}
@@ -355,11 +395,16 @@ public abstract class Client
 				int id = toInt(arguments.elementAt(1));
 				int customerID = toInt(arguments.elementAt(2));
 				String location = arguments.elementAt(3);
-
-				if (m_resourceManager.reserveCar(id, customerID, location)) {
-					System.out.println("Car Reserved");
-				} else {
+				try {
+					if (m_resourceManager.reserveCar(id, customerID, location)) {
+						System.out.println("Car Reserved");
+					} else {
+						System.out.println("Car could not be reserved");
+					}
+				}
+				catch (Exception e) {
 					System.out.println("Car could not be reserved");
+					throw e;
 				}
 				break;
 			}
@@ -373,11 +418,16 @@ public abstract class Client
 				int id = toInt(arguments.elementAt(1));
 				int customerID = toInt(arguments.elementAt(2));
 				String location = arguments.elementAt(3);
-
-				if (m_resourceManager.reserveRoom(id, customerID, location)) {
-					System.out.println("Room Reserved");
-				} else {
+				try {
+					if (m_resourceManager.reserveRoom(id, customerID, location)) {
+						System.out.println("Room Reserved");
+					} else {
+						System.out.println("Room could not be reserved");
+					}
+				}
+				catch (Exception e) {
 					System.out.println("Room could not be reserved");
+					throw e;
 				}
 				break;
 			}
@@ -407,11 +457,16 @@ public abstract class Client
 				String location = arguments.elementAt(arguments.size()-3);
 				boolean car = toBoolean(arguments.elementAt(arguments.size()-2));
 				boolean room = toBoolean(arguments.elementAt(arguments.size()-1));
-
-				if (m_resourceManager.bundle(id, customerID, flightNumbers, location, car, room)) {
-					System.out.println("Bundle Reserved");
-				} else {
+				try {
+					if (m_resourceManager.bundle(id, customerID, flightNumbers, location, car, room)) {
+						System.out.println("Bundle Reserved");
+					} else {
+						System.out.println("Bundle could not be reserved");
+					}
+				}
+				catch (Exception e) {
 					System.out.println("Bundle could not be reserved");
+					throw e;
 				}
 				break;
 			}
