@@ -5,7 +5,10 @@
 
 package Server.Common;
 
+import java.rmi.RemoteException;
+
 import Server.Interface.*;
+import Server.LockManager.*;
 
 import java.util.*;
 
@@ -13,6 +16,8 @@ public class ResourceManager implements IResourceManager
 {
 	protected String m_name = "";
 	protected RMHashMap m_data = new RMHashMap();
+	protected Hashtable<Integer, RMHashMap> m_data_tx = new Hashtable<Integer, RMHashMap>();
+	protected LockManager m_lock = new LockManager();
 
 	public ResourceManager(String p_name)
 	{
@@ -20,35 +25,53 @@ public class ResourceManager implements IResourceManager
 	}
 
 	// Reads a data item
-	protected RMItem readData(int xid, String key)
+	protected RMItem readData(int xid, String key) throws DeadlockException
 	{
-		synchronized(m_data) {
-			RMItem item = m_data.get(key);
-			if (item != null) {
-				return (RMItem)item.clone();
+		try{
+			if (m_lock.Lock(xid,key,TransactionLockObject.LockType.LOCK_READ)){
+				// if read lock granted
+				synchronized(m_data) {
+					// Always ensure the hashtable has an entry for xid or else commit will throw null pointer
+					RMItem item = m_data_tx.get(xid).get(key);
+					if (item != null) {
+						return (RMItem)item.clone();
+					}
+					return null;
+				}
 			}
 			return null;
 		}
+		catch (DeadlockException deadlock) {
+			throw deadlock;
+		}
+
 	}
 
 	// Writes a data item
-	protected void writeData(int xid, String key, RMItem value)
+	protected void writeData(int xid, String key, RMItem value) throws DeadlockException
 	{
-		synchronized(m_data) {
-			m_data.put(key, value);
+		if (m_lock.Lock(xid,key,TransactionLockObject.LockType.LOCK_WRITE)){
+			// if write lock granted
+			synchronized(m_data) {
+				m_data_tx.get(xid).put(key, value);
+			}
 		}
 	}
 
 	// Remove the item out of storage
-	protected void removeData(int xid, String key)
+	protected void removeData(int xid, String key) throws DeadlockException
 	{
-		synchronized(m_data) {
-			m_data.remove(key);
+		// if write lock granted
+		if (m_lock.Lock(xid,key,TransactionLockObject.LockType.LOCK_WRITE)){
+			synchronized(m_data) {
+				m_data_tx.get(xid).remove(key);
+			}
 		}
+
 	}
 
 	// Deletes the encar item
-	protected boolean deleteItem(int xid, String key)
+	protected boolean deleteItem(int xid, String key) throws DeadlockException
 	{
 		Trace.info("RM::deleteItem(" + xid + ", " + key + ") called");
 		ReservableItem curObj = (ReservableItem)readData(xid, key);
@@ -74,8 +97,44 @@ public class ResourceManager implements IResourceManager
 		}
 	}
 
+	// dummy method
+	public int start() throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+		return 0;
+	}
+
+	public void start(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+		Trace.info("RM(" + m_name + ")::start(" + xid + ") called");
+		if (m_data_tx.containsKey(xid)) {
+			throw new InvalidTransactionException(xid, "Cannot start a transaction already underway");
+		}
+		else {
+			m_data_tx.put(xid, (RMHashMap)m_data.clone());
+		}
+	}
+
+	public boolean commit(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+		Trace.info("RM(" + m_name + ")::commit(" + xid + ") called");
+		if (!m_data_tx.containsKey(xid)) {
+			throw new InvalidTransactionException(xid, m_name + " ResourceManager cannot commit a transaction that has not been initialized");
+		}
+		m_data = m_data_tx.get(xid);
+		m_lock.UnlockAll(xid);
+		return true;
+	}
+
+	public void abort(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+		Trace.info("RM(" + m_name + ")::abort(" + xid + ") called");
+		if (!m_data_tx.containsKey(xid)){
+			throw new InvalidTransactionException(xid, m_name + "cannot abort a transaction that has not been initialized");
+		}
+		m_data_tx.remove(xid);
+		m_lock.UnlockAll(xid);
+		throw new TransactionAbortedException(xid, "Transaction was aborted!");
+	}
+
 	// Query the number of available seats/rooms/cars
 	protected int queryNum(int xid, String key)
+			throws RemoteException, TransactionAbortedException, InvalidTransactionException, DeadlockException
 	{
 		Trace.info("RM::queryNum(" + xid + ", " + key + ") called");
 		ReservableItem curObj = (ReservableItem)readData(xid, key);
@@ -90,6 +149,7 @@ public class ResourceManager implements IResourceManager
 
 	// Query the price of an item
 	protected int queryPrice(int xid, String key)
+			throws RemoteException, TransactionAbortedException, InvalidTransactionException, DeadlockException
 	{
 		Trace.info("RM::queryPrice(" + xid + ", " + key + ") called");
 		ReservableItem curObj = (ReservableItem)readData(xid, key);
@@ -104,6 +164,7 @@ public class ResourceManager implements IResourceManager
 
 	// Reserve an item
 	protected boolean reserveItem(int xid, int customerID, String key, String location)
+			throws RemoteException, TransactionAbortedException, InvalidTransactionException, DeadlockException
 	{
 		Trace.info("RM::reserveItem(" + xid + ", customer=" + customerID + ", " + key + ", " + location + ") called" );
 		// Read customer object if it exists (and read lock it)
@@ -144,6 +205,7 @@ public class ResourceManager implements IResourceManager
 	// Create a new flight, or add seats to existing flight
 	// NOTE: if flightPrice <= 0 and the flight already exists, it maintains its current price
 	public boolean addFlight(int xid, int flightNum, int flightSeats, int flightPrice)
+			throws RemoteException, TransactionAbortedException, InvalidTransactionException, DeadlockException
 	{
 		Trace.info("RM::addFlight(" + xid + ", " + flightNum + ", " + flightSeats + ", $" + flightPrice + ") called");
 		Flight curObj = (Flight)readData(xid, Flight.getKey(flightNum));
@@ -171,6 +233,7 @@ public class ResourceManager implements IResourceManager
 	// Create a new car location or add cars to an existing location
 	// NOTE: if price <= 0 and the location already exists, it maintains its current price
 	public boolean addCars(int xid, String location, int count, int price)
+			throws RemoteException, TransactionAbortedException, InvalidTransactionException, DeadlockException
 	{
 		Trace.info("RM::addCars(" + xid + ", " + location + ", " + count + ", $" + price + ") called");
 		Car curObj = (Car)readData(xid, Car.getKey(location));
@@ -198,6 +261,7 @@ public class ResourceManager implements IResourceManager
 	// Create a new room location or add rooms to an existing location
 	// NOTE: if price <= 0 and the room location already exists, it maintains its current price
 	public boolean addRooms(int xid, String location, int count, int price)
+			throws RemoteException, TransactionAbortedException, InvalidTransactionException, DeadlockException
 	{
 		Trace.info("RM::addRooms(" + xid + ", " + location + ", " + count + ", $" + price + ") called");
 		Room curObj = (Room)readData(xid, Room.getKey(location));
@@ -222,59 +286,69 @@ public class ResourceManager implements IResourceManager
 
 	// Deletes flight
 	public boolean deleteFlight(int xid, int flightNum)
+			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
 		return deleteItem(xid, Flight.getKey(flightNum));
 	}
 
 	// Delete cars at a location
 	public boolean deleteCars(int xid, String location)
+			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
 		return deleteItem(xid, Car.getKey(location));
 	}
 
 	// Delete rooms at a location
 	public boolean deleteRooms(int xid, String location)
+			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
 		return deleteItem(xid, Room.getKey(location));
 	}
 
 	// Returns the number of empty seats in this flight
 	public int queryFlight(int xid, int flightNum)
+			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
 		return queryNum(xid, Flight.getKey(flightNum));
 	}
 
 	// Returns the number of cars available at a location
 	public int queryCars(int xid, String location)
+			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
 		return queryNum(xid, Car.getKey(location));
 	}
 
 	// Returns the amount of rooms available at a location
 	public int queryRooms(int xid, String location)
+			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
 		return queryNum(xid, Room.getKey(location));
 	}
 
 	// Returns price of a seat in this flight
 	public int queryFlightPrice(int xid, int flightNum)
+			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
 		return queryPrice(xid, Flight.getKey(flightNum));
 	}
 
 	// Returns price of cars at this location
 	public int queryCarsPrice(int xid, String location)
+			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
 		return queryPrice(xid, Car.getKey(location));
 	}
 
 	// Returns room price at this location
 	public int queryRoomsPrice(int xid, String location)
+			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
 		return queryPrice(xid, Room.getKey(location));
 	}
 
 	public String queryCustomerInfo(int xid, int customerID)
+			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
 		Trace.info("RM::queryCustomerInfo(" + xid + ", " + customerID + ") called");
 		Customer customer = (Customer)readData(xid, Customer.getKey(customerID));
@@ -293,8 +367,9 @@ public class ResourceManager implements IResourceManager
 	}
 
 	public int newCustomer(int xid)
+			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
-					Trace.info("RM::newCustomer(" + xid + ") called");
+		Trace.info("RM::newCustomer(" + xid + ") called");
 		// Generate a globally unique ID for the new customer
 		int cid = Integer.parseInt(String.valueOf(xid) +
 			String.valueOf(Calendar.getInstance().get(Calendar.MILLISECOND)) +
@@ -306,6 +381,7 @@ public class ResourceManager implements IResourceManager
 	}
 
 	public boolean newCustomer(int xid, int customerID)
+			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
 		Trace.info("RM::newCustomer(" + xid + ", " + customerID + ") called");
 		Customer customer = (Customer)readData(xid, Customer.getKey(customerID));
@@ -324,6 +400,7 @@ public class ResourceManager implements IResourceManager
 	}
 
 	public boolean deleteCustomer(int xid, int customerID)
+			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
 		Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") called");
 		Customer customer = (Customer)readData(xid, Customer.getKey(customerID));
@@ -356,25 +433,40 @@ public class ResourceManager implements IResourceManager
 
 	// Adds flight reservation to this customer
 	public boolean reserveFlight(int xid, int customerID, int flightNum)
+			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
 		return reserveItem(xid, customerID, Flight.getKey(flightNum), String.valueOf(flightNum));
 	}
 
 	// Adds car reservation to this customer
 	public boolean reserveCar(int xid, int customerID, String location)
+			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
 		return reserveItem(xid, customerID, Car.getKey(location), location);
 	}
 
 	// Adds room reservation to this customer
 	public boolean reserveRoom(int xid, int customerID, String location)
+			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
 		return reserveItem(xid, customerID, Room.getKey(location), location);
 	}
 
 	// Reserve bundle
 	public boolean bundle(int xid, int customerId, Vector<String> flightNumbers, String location, boolean car, boolean room)
+			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
+		return false;
+	}
+
+	public boolean equals(Object rmObj) {
+		if (rmObj == null) return false;
+
+		if (rmObj instanceof ResourceManager) {
+			if (m_name == ((ResourceManager)rmObj).getName()) {
+				return true;
+			}
+		}
 		return false;
 	}
 

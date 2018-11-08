@@ -5,7 +5,7 @@ import java.rmi.*;
 
 import Server.RMI.*;
 
-public class TestRMIResourceManager {
+public class SkipRMIResourceManager {
 
     @Test
     public void testInit() {

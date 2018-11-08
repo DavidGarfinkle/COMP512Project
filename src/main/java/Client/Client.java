@@ -1,6 +1,7 @@
 package Client;
 
 import Server.Interface.*;
+import Server.LockManager.*;
 
 import java.util.*;
 import java.io.*;
@@ -67,7 +68,8 @@ public abstract class Client
 		}
 	}
 
-	public void execute(Command cmd, Vector<String> arguments) throws RemoteException, NumberFormatException
+	public void execute(Command cmd, Vector<String> arguments)
+			throws RemoteException, NumberFormatException, TransactionAbortedException, InvalidTransactionException, DeadlockException
 	{
 		switch (cmd)
 		{
@@ -223,7 +225,7 @@ public abstract class Client
 
 				System.out.println("Deleting a customer from the database [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Customer ID: " + arguments.elementAt(2));
-				
+
 				int id = toInt(arguments.elementAt(1));
 				int customerID = toInt(arguments.elementAt(2));
 
@@ -239,7 +241,7 @@ public abstract class Client
 
 				System.out.println("Querying a flight [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Flight Number: " + arguments.elementAt(2));
-				
+
 				int id = toInt(arguments.elementAt(1));
 				int flightNum = toInt(arguments.elementAt(2));
 
@@ -252,7 +254,7 @@ public abstract class Client
 
 				System.out.println("Querying cars location [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Car Location: " + arguments.elementAt(2));
-				
+
 				int id = toInt(arguments.elementAt(1));
 				String location = arguments.elementAt(2);
 
@@ -265,7 +267,7 @@ public abstract class Client
 
 				System.out.println("Querying rooms location [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Room Location: " + arguments.elementAt(2));
-				
+
 				int id = toInt(arguments.elementAt(1));
 				String location = arguments.elementAt(2);
 
@@ -284,11 +286,11 @@ public abstract class Client
 
 				String bill = m_resourceManager.queryCustomerInfo(id, customerID);
 				System.out.print(bill);
-				break;               
+				break;
 			}
 			case QueryFlightPrice: {
 				checkArgumentsCount(3, arguments.size());
-				
+
 				System.out.println("Querying a flight price [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Flight Number: " + arguments.elementAt(2));
 
@@ -367,7 +369,7 @@ public abstract class Client
 				System.out.println("Reserving a room at a location [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Customer ID: " + arguments.elementAt(2));
 				System.out.println("-Room Location: " + arguments.elementAt(3));
-				
+
 				int id = toInt(arguments.elementAt(1));
 				int customerID = toInt(arguments.elementAt(2));
 				String location = arguments.elementAt(3);
@@ -410,6 +412,41 @@ public abstract class Client
 					System.out.println("Bundle Reserved");
 				} else {
 					System.out.println("Bundle could not be reserved");
+				}
+				break;
+			}
+			case Start: {
+				checkArgumentsCount(1, arguments.size());
+
+				System.out.println("Client::execute() Case 'Start': Starting a new transaction");
+				int xid = m_resourceManager.start();
+				if (xid == -1) {
+					System.out.println("Could not start a new transaction.");
+				} else {
+					System.out.println("Transaction started on transaction manager, received txid: " + xid);
+				}
+				break;
+			}
+			case Commit: {
+				checkArgumentsCount(2, arguments.size());
+				int xid = Integer.parseInt(arguments.elementAt(1));
+				System.out.println("Committing the current transaction");
+				if(m_resourceManager.commit(xid)) {
+					System.out.println("Transaction committed");
+				} else {
+					System.out.println("Transaction could not be committed");
+				}
+				break;
+			}
+			case Abort: {
+				checkArgumentsCount(2, arguments.size());
+				int xid = Integer.parseInt(arguments.elementAt(1));
+				System.out.println("Aborting the current transaction");
+				try {
+					m_resourceManager.abort(xid);
+					System.out.println("Transaction Aborted");
+				} catch (Exception e) {
+					System.out.println("Transaction could not be aborted, " + e);
 				}
 				break;
 			}

@@ -41,4 +41,3 @@ public class RMHashMap extends HashMap<String, RMItem>
 		return obj;
 	}
 }
-

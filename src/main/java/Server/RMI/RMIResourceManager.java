@@ -35,18 +35,17 @@ public class RMIResourceManager extends ResourceManager {
 	{
 		// Dynamically generate the stub (client proxy)
 		IResourceManager resourceManager = (IResourceManager)UnicastRemoteObject.exportObject(this, 0);
-
 		registry = createOrGetRegistry(1099);
 
 		// Bind the remote object's stub in the registry
 		try {
 			registry.rebind(s_rmiPrefix + s_serverName, resourceManager);
+			System.out.println("'" + s_serverName + "' resource manager server ready and bound to '" + s_rmiPrefix + s_serverName + "'");
 		}
 		catch(Exception e) {
 			System.err.println((char)27 + "[31;1mServer exception: " + (char)27 + "[0mUncaught exception");
 			e.printStackTrace();
 		}
-		System.out.println("'" + s_serverName + "' resource manager server ready and bound to '" + s_rmiPrefix + s_serverName + "'");
 	}
 
 	public void unbind()

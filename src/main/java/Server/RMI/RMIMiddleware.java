@@ -1,6 +1,5 @@
 package Server.RMI;
 
-import java.rmi.*;
 import java.rmi.RemoteException;
 import java.rmi.NotBoundException;
 import Server.Interface.*;
@@ -13,6 +12,8 @@ public class RMIMiddleware extends Middleware {
 
   private static int s_serverPort = 1099;
 	private static String s_rmiPrefix = "group28";
+
+  private static String s_middlewareName = "Server";
 
 	private static String s_flightServerName = "Flight";
 	private static String s_carServerName = "Car";
@@ -44,24 +45,29 @@ public class RMIMiddleware extends Middleware {
 				// same middleware interface
 				Registry l_registry;
 				try {
-					l_registry = LocateRegistry.createRegistry(1099);
+					l_registry = LocateRegistry.createRegistry(s_serverPort);
 				} catch (RemoteException e) {
-					l_registry = LocateRegistry.getRegistry(1099);
+					l_registry = LocateRegistry.getRegistry(s_serverPort);
 				}
 				final Registry registry = l_registry;
-				registry.rebind(s_rmiPrefix + s_flightServerName, middlewareEndpoint);
-				registry.rebind(s_rmiPrefix + s_carServerName, middlewareEndpoint);
-				registry.rebind(s_rmiPrefix + s_roomServerName, middlewareEndpoint);
+				//registry.rebind(s_rmiPrefix + s_flightServerName, middlewareEndpoint);
+				//registry.rebind(s_rmiPrefix + s_carServerName, middlewareEndpoint);
+				//registry.rebind(s_rmiPrefix + s_roomServerName, middlewareEndpoint);
+				registry.rebind(s_rmiPrefix + s_middlewareName, middlewareEndpoint);
 
 				Runtime.getRuntime().addShutdownHook(new Thread() {
 					public void run() {
 						try {
+              /*
 							registry.unbind(s_rmiPrefix + s_flightServerName);
 							System.out.println("'" + s_flightServerName + "' resource manager unbound");
 							registry.unbind(s_rmiPrefix + s_carServerName);
 							System.out.println("'" + s_carServerName + "' resource manager unbound");
 							registry.unbind(s_rmiPrefix + s_roomServerName);
 							System.out.println("'" + s_roomServerName + "' resource manager unbound");
+              */
+      				registry.unbind(s_rmiPrefix + s_middlewareName);
+							System.out.println("'" + s_middlewareName + "' middlware unbound");
 						} catch (Exception e) {
 							System.err.println(
 									(char) 27 + "[31;1mServer exception: " + (char) 27 + "[0mUncaught exception");
@@ -76,6 +82,8 @@ public class RMIMiddleware extends Middleware {
 						+ s_rmiPrefix + s_carServerName + "'");
 				System.out.println("'" + s_roomServerName + "' resource manager server ready and bound to '"
 						+ s_rmiPrefix + s_roomServerName + "'");
+				System.out.println("'" + s_middlewareName + "' middlware server ready and bound to '"
+            + s_rmiPrefix + s_middlewareName + "'");
 			} catch (Exception e) {
 				System.err
 						.println((char) 27 + "[31;1mServer exception: " + (char) 27 + "[0mUncaught exception");
