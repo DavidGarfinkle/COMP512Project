@@ -9,10 +9,12 @@ import java.rmi.RemoteException;
 import java.rmi.ConnectException;
 import java.rmi.ServerException;
 import java.rmi.UnmarshalException;
+import java.util.concurrent.TimeUnit;
 
 public abstract class Client
 {
 	IResourceManager m_resourceManager = null;
+	int global_xid;
 
 	public Client()
 	{
@@ -34,40 +36,49 @@ public abstract class Client
 			// Read the next command
 			String command = "";
 			Vector<String> arguments = new Vector<String>();
-			try {
-				System.out.print((char)27 + "[32;1m\n>] " + (char)27 + "[0m");
-				command = stdin.readLine().trim();
-			}
-			catch (IOException io) {
-				System.err.println((char)27 + "[31;1mClient exception: " + (char)27 + "[0m" + io.getLocalizedMessage());
-				io.printStackTrace();
-				System.exit(1);
-			}
+			// try {
+			// 	System.out.print((char)27 + "[32;1m\n>] " + (char)27 + "[0m");
+			// 	command = stdin.readLine().trim();
+			// }
+			// catch (IOException io) {
+			// 	System.err.println((char)27 + "[31;1mClient exception: " + (char)27 + "[0m" + io.getLocalizedMessage());
+			// 	io.printStackTrace();
+			// 	System.exit(1);
+			// }
 
-			try {
-				arguments = parse(command);
-				Command cmd = Command.fromString((String)arguments.elementAt(0));
+			String[] command_arr_1 = {"start","addFlight,1,1,1,1", "quit"};
+
+			for (int i=0;i<command_arr_1.length;i++){
+				command = command_arr_1[i];
 				try {
-					execute(cmd, arguments);
+					arguments = parse(command);
+					Command cmd = Command.fromString((String)arguments.elementAt(0));
+					long start = System.currentTimeMillis();
+					try {
+						execute(cmd, arguments);
+					}
+					catch (ConnectException e) {
+						connectServer();
+						execute(cmd, arguments);
+					}
+					long end = System.currentTimeMillis();
+					System.out.println("Time:	" + (end-start));
 				}
-				catch (ConnectException e) {
-					connectServer();
-					execute(cmd, arguments);
+				catch (IllegalArgumentException|ServerException e) {
+					System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0m" + e.getLocalizedMessage());
+				}
+				catch (ConnectException|UnmarshalException e) {
+					System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0mConnection to server lost");
+				}
+				catch (InvalidTransactionException e) {
+					System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0m" + e.getLocalizedMessage());
+				}
+				catch (Exception e) {
+					System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0mUncaught exception");
+					e.printStackTrace();
 				}
 			}
-			catch (IllegalArgumentException|ServerException e) {
-				System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0m" + e.getLocalizedMessage());
-			}
-			catch (ConnectException|UnmarshalException e) {
-				System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0mConnection to server lost");
-			}
-			catch (InvalidTransactionException e) {
-				System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0m" + e.getLocalizedMessage());
-			}
-			catch (Exception e) {
-				System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0mUncaught exception");
-				e.printStackTrace();
-			}
+			
 		}
 	}
 
@@ -423,6 +434,7 @@ public abstract class Client
 
 				System.out.println("Client::execute() Case 'Start': Starting a new transaction");
 				int xid = m_resourceManager.start();
+				global_xid = xid;
 				if (xid == -1) {
 					System.out.println("Could not start a new transaction.");
 				} else {
