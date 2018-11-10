@@ -9,14 +9,18 @@ import java.rmi.RemoteException;
 
 import Server.Interface.*;
 import Server.LockManager.*;
+import Server.Utils.*;
 
 import java.util.logging.*;
+import java.io.*;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class ResourceManager implements IResourceManager
 {
+    private static final Logger performanceLogger = Logger.getLogger("performanceLogger");
+
 	protected String m_name = "";
 	protected RMHashMap m_data = new RMHashMap();
 	protected Hashtable<Integer, RMHashMap> m_data_tx = new Hashtable<Integer, RMHashMap>();
@@ -25,6 +29,15 @@ public class ResourceManager implements IResourceManager
 	public ResourceManager(String p_name)
 	{
 		m_name = p_name;
+        try {
+          FileHandler fh = new FileHandler("perf-RM.log");
+          CSVFormatter formatter = new CSVFormatter();
+          fh.setFormatter(formatter);
+          performanceLogger.addHandler(fh);
+        }
+        catch(IOException e){
+          System.out.println("Couldn't set up performance logger file handler");
+        }
 	}
 
 	// Reads a data item
@@ -43,11 +56,13 @@ public class ResourceManager implements IResourceManager
 						return (RMItem)item.clone();
 					}
 					long end = System.nanoTime();
+                    performanceLogger.log(Level.INFO, String.join(",", "RM-" + m_name + "::readData(" + String.join(String.valueOf(xid), key) + ")", String.valueOf(start), String.valueOf(end), String.valueOf(end - start)));
 					Trace.info("DB::Response Time:	" + (end-start));
 					return null;
 				}
 			}
 			long end = System.nanoTime();
+            //performanceLogger.log(Level.INFO, String.join(",", "RM-" + m_name + "::readData(" + String.join(String.valueOf(xid), key) + ")", String.valueOf(start), String.valueOf(end), String.valueOf(end - start)));
 			// Trace.info("DB::Response Time:	" + (end-start));
 			return null;
 		}
@@ -66,6 +81,7 @@ public class ResourceManager implements IResourceManager
 			synchronized(m_data) {
 				m_data_tx.get(xid).put(key, value);
 				long end = System.nanoTime();
+                //performanceLogger.log(Level.INFO, String.join(",", "RM-" + m_name + "::writeData(" + String.join(String.valueOf(xid), key) + ")", String.valueOf(start), String.valueOf(end), String.valueOf(end - start)));
 				// Trace.info("DB::Response Time:	" + (end-start));
 			}
 		}
@@ -80,6 +96,7 @@ public class ResourceManager implements IResourceManager
 			synchronized(m_data) {
 				m_data_tx.get(xid).remove(key);
 				long end = System.nanoTime();
+                //performanceLogger.log(Level.INFO, String.join(",", "RM-" + m_name + "::endData(" + String.join(String.valueOf(xid), key) + ")", String.valueOf(start), String.valueOf(end), String.valueOf(end - start)));
 				// Trace.info("DB::Response Time:	" + (end-start));
 			}
 		}
@@ -233,6 +250,7 @@ public class ResourceManager implements IResourceManager
 			long dbstart = System.nanoTime();
 			writeData(xid, newObj.getKey(), newObj);
 			long dbend = System.nanoTime();
+            performanceLogger.log(Level.INFO, String.join(",", "RM-" + m_name + "::addFlight(" + String.join(",", String.valueOf(xid), String.valueOf(flightNum), String.valueOf(flightSeats), String.valueOf(flightPrice)) + ")", String.valueOf(dbstart), String.valueOf(dbend), String.valueOf(dbend - dbstart)));
 			Trace.info("DB::Response Time:	" + (dbend-dbstart));
 			Trace.info("RM::addFlight(" + xid + ") created new flight " + flightNum + ", seats=" + flightSeats + ", price=$" + flightPrice);
 		}
@@ -279,6 +297,7 @@ public class ResourceManager implements IResourceManager
 			Trace.info("RM::addCars(" + xid + ") modified existing location " + location + ", count=" + curObj.getCount() + ", price=$" + price);
 		}
 		long end = System.nanoTime();
+        performanceLogger.log(Level.INFO, String.join(",", "RM-" + m_name + "::addCars(" + String.join(",", String.valueOf(xid), location, String.valueOf(count), String.valueOf(price)) + ")", String.valueOf(start), String.valueOf(end), String.valueOf(end - start)));
 		Trace.info("RM::Response Time:	" + (end-start));
 		return true;
 	}
@@ -308,6 +327,7 @@ public class ResourceManager implements IResourceManager
 			Trace.info("RM::addRooms(" + xid + ") modified existing location " + location + ", count=" + curObj.getCount() + ", price=$" + price);
 		}
 		long end = System.nanoTime();
+        performanceLogger.log(Level.INFO, String.join(",", "RM-" + m_name + "::addRooms(" + String.join(",", String.valueOf(xid), location, String.valueOf(count), String.valueOf(price)) + ")", String.valueOf(start), String.valueOf(end), String.valueOf(end - start)));
 		Trace.info("RM::Response Time:	" + (end-start));
 		return true;
 	}
@@ -316,7 +336,13 @@ public class ResourceManager implements IResourceManager
 	public boolean deleteFlight(int xid, int flightNum)
 			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
-		return deleteItem(xid, Flight.getKey(flightNum));
+        long start = System.nanoTime();
+		boolean res = deleteItem(xid, Flight.getKey(flightNum));
+        long end = System.nanoTime();
+        performanceLogger.log(Level.INFO, String.join(",", "RM-" + m_name + "::deleteFlight(" + String.join(",", String.valueOf(xid), String.valueOf(flightNum)) + ")", String.valueOf(start), String.valueOf(end), String.valueOf(end - start)));
+		Trace.info("RM::Response Time:	" + (end-start));
+
+        return res;
 	}
 
 	// Delete cars at a location
@@ -326,6 +352,7 @@ public class ResourceManager implements IResourceManager
 		long start = System.nanoTime();
 		boolean res = deleteItem(xid, Car.getKey(location));
 		long end = System.nanoTime();
+        performanceLogger.log(Level.INFO, String.join(",", "RM-" + m_name + "::deleteCars(" + String.join(",", String.valueOf(xid), location) + ")", String.valueOf(start), String.valueOf(end), String.valueOf(end - start)));
 		Trace.info("RM::Response Time:	" + (end-start));
 		return res;
 	}
@@ -337,6 +364,7 @@ public class ResourceManager implements IResourceManager
 		long start = System.nanoTime();
 		boolean res = deleteItem(xid, Room.getKey(location));
 		long end = System.nanoTime();
+        performanceLogger.log(Level.INFO, String.join(",", "RM-" + m_name + "::deleteRooms(" + String.join(",", String.valueOf(xid), location) + ")", String.valueOf(start), String.valueOf(end), String.valueOf(end - start)));
 		Trace.info("RM::Response Time:	" + (end-start));
 		return res;
 	}
@@ -348,6 +376,7 @@ public class ResourceManager implements IResourceManager
 		long start = System.nanoTime();
 		int res = queryNum(xid, Flight.getKey(flightNum));
 		long end = System.nanoTime();
+        performanceLogger.log(Level.INFO, String.join(",", "RM-" + m_name + "::queryFlight(" + String.join(",", String.valueOf(xid), String.valueOf(flightNum)) + ")", String.valueOf(start), String.valueOf(end), String.valueOf(end - start)));
 		Trace.info("RM::Response Time:	" + (end-start));
 		return res;
 	}
@@ -359,6 +388,7 @@ public class ResourceManager implements IResourceManager
 		long start = System.nanoTime();
 		int res = queryNum(xid, Car.getKey(location));
 		long end = System.nanoTime();
+        performanceLogger.log(Level.INFO, String.join(",", "RM-" + m_name + "::queryCars(" + String.join(",", String.valueOf(xid), location) + ")", String.valueOf(start), String.valueOf(end), String.valueOf(end - start)));
 		Trace.info("RM::Response Time:	" + (end-start));
 		return res;
 	}
@@ -370,6 +400,7 @@ public class ResourceManager implements IResourceManager
 		long start = System.nanoTime();
 		int res = queryNum(xid, Room.getKey(location));
 		long end = System.nanoTime();
+        performanceLogger.log(Level.INFO, String.join(",", "RM-" + m_name + "::queryRooms(" + String.join(",", String.valueOf(xid), location) + ")", String.valueOf(start), String.valueOf(end), String.valueOf(end - start)));
 		Trace.info("RM::Response Time:	" + (end-start));
 		return res;
 	}
@@ -381,6 +412,7 @@ public class ResourceManager implements IResourceManager
 		long start = System.nanoTime();
 		int res = queryPrice(xid, Flight.getKey(flightNum));
 		long end = System.nanoTime();
+        performanceLogger.log(Level.INFO, String.join(",", "RM-" + m_name + "::queryFlightPrice(" + String.join(",", String.valueOf(xid), String.valueOf(flightNum)) + ")", String.valueOf(start), String.valueOf(end), String.valueOf(end - start)));
 		Trace.info("RM::Response Time:	" + (end-start));
 		return res;
 	}
@@ -392,6 +424,7 @@ public class ResourceManager implements IResourceManager
 		long start = System.nanoTime();
 		int res = queryPrice(xid, Car.getKey(location));
 		long end = System.nanoTime();
+        performanceLogger.log(Level.INFO, String.join(",", "RM-" + m_name + "::queryCarsPrice(" + String.join(",", String.valueOf(xid), location) + ")", String.valueOf(start), String.valueOf(end), String.valueOf(end - start)));
 		Trace.info("RM::Response Time:	" + (end-start));
 		return res;
 	}
@@ -403,6 +436,7 @@ public class ResourceManager implements IResourceManager
 		long start = System.nanoTime();
 		int res = queryPrice(xid, Room.getKey(location));
 		long end = System.nanoTime();
+        performanceLogger.log(Level.INFO, String.join(",", "RM-" + m_name + "::queryRoomsPrice(" + String.join(",", String.valueOf(xid), location) + ")", String.valueOf(start), String.valueOf(end), String.valueOf(end - start)));
 		Trace.info("RM::Response Time:	" + (end-start));
 		return res;
 	}

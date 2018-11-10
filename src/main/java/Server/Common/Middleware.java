@@ -24,7 +24,10 @@ public class Middleware implements IResourceManager {
   public Middleware() throws RemoteException {
     this.TM = new TransactionManager();
     try {
-      performanceLogger.addHandler(new FileHandler("perf.log"));
+      FileHandler fh = new FileHandler("perf-MW.log");
+      CSVFormatter formatter = new CSVFormatter();
+      fh.setFormatter(formatter);
+      performanceLogger.addHandler(fh);
     }
     catch(IOException e){
       System.out.println("Couldn't set up performance logger file handler");
@@ -34,7 +37,7 @@ public class Middleware implements IResourceManager {
   public Middleware(IResourceManager flightRM, IResourceManager roomRM, IResourceManager carRM)
       throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     try {
-      FileHandler fh = new FileHandler("perf.log");
+      FileHandler fh = new FileHandler("perf-MW.log");
       CSVFormatter formatter = new CSVFormatter();
       fh.setFormatter(formatter);
       performanceLogger.addHandler(fh);
