@@ -7,6 +7,8 @@ import java.rmi.RemoteException;
 import java.util.*;
 import java.util.logging.*;
 
+import Server.Utils.*;
+
 public class Middleware implements IResourceManager {
 
   private static final Logger performanceLogger = Logger.getLogger("performance");
@@ -31,7 +33,10 @@ public class Middleware implements IResourceManager {
   public Middleware(IResourceManager flightRM, IResourceManager roomRM, IResourceManager carRM)
       throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     try {
-      performanceLogger.addHandler(new FileHandler("perf.log"));
+      FileHandler fh = new FileHandler("perf.log");
+      CSVFormatter formatter = new CSVFormatter();
+      fh.setFormatter(formatter);
+      performanceLogger.addHandler(fh);
     }
     catch(IOException e){
       System.out.println("Couldn't set up performance logger file handler");
