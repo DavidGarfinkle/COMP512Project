@@ -13,6 +13,7 @@ import Server.LockManager.*;
 import java.util.logging.*;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class ResourceManager implements IResourceManager
 {
@@ -31,16 +32,23 @@ public class ResourceManager implements IResourceManager
 	{
 		try{
 			if (m_lock.Lock(xid,key,TransactionLockObject.LockType.LOCK_READ)){
+				long start = System.nanoTime();
 				// if read lock granted
 				synchronized(m_data) {
 					// Always ensure the hashtable has an entry for xid or else commit will throw null pointer
 					RMItem item = m_data_tx.get(xid).get(key);
 					if (item != null) {
+						long end = System.nanoTime();
+						Trace.info("DB::Response Time:	" + (end-start));
 						return (RMItem)item.clone();
 					}
+					long end = System.nanoTime();
+					Trace.info("DB::Response Time:	" + (end-start));
 					return null;
 				}
 			}
+			long end = System.nanoTime();
+			// Trace.info("DB::Response Time:	" + (end-start));
 			return null;
 		}
 		catch (DeadlockException deadlock) {
@@ -52,10 +60,13 @@ public class ResourceManager implements IResourceManager
 	// Writes a data item
 	protected void writeData(int xid, String key, RMItem value) throws DeadlockException
 	{
+		long start = System.nanoTime();
 		if (m_lock.Lock(xid,key,TransactionLockObject.LockType.LOCK_WRITE)){
 			// if write lock granted
 			synchronized(m_data) {
 				m_data_tx.get(xid).put(key, value);
+				long end = System.nanoTime();
+				// Trace.info("DB::Response Time:	" + (end-start));
 			}
 		}
 	}
@@ -64,9 +75,12 @@ public class ResourceManager implements IResourceManager
 	protected void removeData(int xid, String key) throws DeadlockException
 	{
 		// if write lock granted
+		long start = System.nanoTime();
 		if (m_lock.Lock(xid,key,TransactionLockObject.LockType.LOCK_WRITE)){
 			synchronized(m_data) {
 				m_data_tx.get(xid).remove(key);
+				long end = System.nanoTime();
+				// Trace.info("DB::Response Time:	" + (end-start));
 			}
 		}
 
@@ -209,13 +223,17 @@ public class ResourceManager implements IResourceManager
 	public boolean addFlight(int xid, int flightNum, int flightSeats, int flightPrice)
 			throws RemoteException, TransactionAbortedException, InvalidTransactionException, DeadlockException
 	{
+		long start = System.nanoTime();
 		Trace.info("RM::addFlight(" + xid + ", " + flightNum + ", " + flightSeats + ", $" + flightPrice + ") called");
 		Flight curObj = (Flight)readData(xid, Flight.getKey(flightNum));
 		if (curObj == null)
 		{
 			// Doesn't exist yet, add it
 			Flight newObj = new Flight(flightNum, flightSeats, flightPrice);
+			long dbstart = System.nanoTime();
 			writeData(xid, newObj.getKey(), newObj);
+			long dbend = System.nanoTime();
+			Trace.info("DB::Response Time:	" + (dbend-dbstart));
 			Trace.info("RM::addFlight(" + xid + ") created new flight " + flightNum + ", seats=" + flightSeats + ", price=$" + flightPrice);
 		}
 		else
@@ -229,6 +247,8 @@ public class ResourceManager implements IResourceManager
 			writeData(xid, curObj.getKey(), curObj);
 			Trace.info("RM::addFlight(" + xid + ") modified existing flight " + flightNum + ", seats=" + curObj.getCount() + ", price=$" + flightPrice);
 		}
+		long end = System.nanoTime();
+		Trace.info("RM::Response Time:	" + (end-start));
 		return true;
 	}
 
@@ -237,6 +257,7 @@ public class ResourceManager implements IResourceManager
 	public boolean addCars(int xid, String location, int count, int price)
 			throws RemoteException, TransactionAbortedException, InvalidTransactionException, DeadlockException
 	{
+		long start = System.nanoTime();
 		Trace.info("RM::addCars(" + xid + ", " + location + ", " + count + ", $" + price + ") called");
 		Car curObj = (Car)readData(xid, Car.getKey(location));
 		if (curObj == null)
@@ -257,6 +278,8 @@ public class ResourceManager implements IResourceManager
 			writeData(xid, curObj.getKey(), curObj);
 			Trace.info("RM::addCars(" + xid + ") modified existing location " + location + ", count=" + curObj.getCount() + ", price=$" + price);
 		}
+		long end = System.nanoTime();
+		Trace.info("RM::Response Time:	" + (end-start));
 		return true;
 	}
 
@@ -265,6 +288,7 @@ public class ResourceManager implements IResourceManager
 	public boolean addRooms(int xid, String location, int count, int price)
 			throws RemoteException, TransactionAbortedException, InvalidTransactionException, DeadlockException
 	{
+		long start = System.nanoTime();
 		Trace.info("RM::addRooms(" + xid + ", " + location + ", " + count + ", $" + price + ") called");
 		Room curObj = (Room)readData(xid, Room.getKey(location));
 		if (curObj == null)
@@ -283,6 +307,8 @@ public class ResourceManager implements IResourceManager
 			writeData(xid, curObj.getKey(), curObj);
 			Trace.info("RM::addRooms(" + xid + ") modified existing location " + location + ", count=" + curObj.getCount() + ", price=$" + price);
 		}
+		long end = System.nanoTime();
+		Trace.info("RM::Response Time:	" + (end-start));
 		return true;
 	}
 
@@ -297,73 +323,110 @@ public class ResourceManager implements IResourceManager
 	public boolean deleteCars(int xid, String location)
 			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
-		return deleteItem(xid, Car.getKey(location));
+		long start = System.nanoTime();
+		boolean res = deleteItem(xid, Car.getKey(location));
+		long end = System.nanoTime();
+		Trace.info("RM::Response Time:	" + (end-start));
+		return res;
 	}
 
 	// Delete rooms at a location
 	public boolean deleteRooms(int xid, String location)
 			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
-		return deleteItem(xid, Room.getKey(location));
+		long start = System.nanoTime();
+		boolean res = deleteItem(xid, Room.getKey(location));
+		long end = System.nanoTime();
+		Trace.info("RM::Response Time:	" + (end-start));
+		return res;
 	}
 
 	// Returns the number of empty seats in this flight
 	public int queryFlight(int xid, int flightNum)
 			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
-		return queryNum(xid, Flight.getKey(flightNum));
+		long start = System.nanoTime();
+		int res = queryNum(xid, Flight.getKey(flightNum));
+		long end = System.nanoTime();
+		Trace.info("RM::Response Time:	" + (end-start));
+		return res;
 	}
 
 	// Returns the number of cars available at a location
 	public int queryCars(int xid, String location)
 			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
-		return queryNum(xid, Car.getKey(location));
+		long start = System.nanoTime();
+		int res = queryNum(xid, Car.getKey(location));
+		long end = System.nanoTime();
+		Trace.info("RM::Response Time:	" + (end-start));
+		return res;
 	}
 
 	// Returns the amount of rooms available at a location
 	public int queryRooms(int xid, String location)
 			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
-		return queryNum(xid, Room.getKey(location));
+		long start = System.nanoTime();
+		int res = queryNum(xid, Room.getKey(location));
+		long end = System.nanoTime();
+		Trace.info("RM::Response Time:	" + (end-start));
+		return res;
 	}
 
 	// Returns price of a seat in this flight
 	public int queryFlightPrice(int xid, int flightNum)
 			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
-		return queryPrice(xid, Flight.getKey(flightNum));
+		long start = System.nanoTime();
+		int res = queryPrice(xid, Flight.getKey(flightNum));
+		long end = System.nanoTime();
+		Trace.info("RM::Response Time:	" + (end-start));
+		return res;
 	}
 
 	// Returns price of cars at this location
 	public int queryCarsPrice(int xid, String location)
 			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
-		return queryPrice(xid, Car.getKey(location));
+		long start = System.nanoTime();
+		int res = queryPrice(xid, Car.getKey(location));
+		long end = System.nanoTime();
+		Trace.info("RM::Response Time:	" + (end-start));
+		return res;
 	}
 
 	// Returns room price at this location
 	public int queryRoomsPrice(int xid, String location)
 			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
-		return queryPrice(xid, Room.getKey(location));
+		long start = System.nanoTime();
+		int res = queryPrice(xid, Room.getKey(location));
+		long end = System.nanoTime();
+		Trace.info("RM::Response Time:	" + (end-start));
+		return res;
 	}
 
 	public String queryCustomerInfo(int xid, int customerID)
 			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
+		long start = System.nanoTime();
 		Trace.info("RM::queryCustomerInfo(" + xid + ", " + customerID + ") called");
 		Customer customer = (Customer)readData(xid, Customer.getKey(customerID));
 		if (customer == null)
 		{
 			Trace.warn("RM::queryCustomerInfo(" + xid + ", " + customerID + ") failed--customer doesn't exist");
 			// NOTE: don't change this--WC counts on this value indicating a customer does not exist...
+			long end = System.nanoTime();
+			Trace.info("RM::Response Time:	" + (end-start));
 			return "";
 		}
 		else
 		{
 			Trace.info("RM::queryCustomerInfo(" + xid + ", " + customerID + ")");
 			System.out.println(customer.getBill());
+			long end = System.nanoTime();
+			Trace.info("RM::Response Time:	" + (end-start));
 			return customer.getBill();
 		}
 	}
@@ -371,6 +434,7 @@ public class ResourceManager implements IResourceManager
 	public int newCustomer(int xid)
 			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
+		long start = System.nanoTime();
 		Trace.info("RM::newCustomer(" + xid + ") called");
 		// Generate a globally unique ID for the new customer
 		int cid = Integer.parseInt(String.valueOf(xid) +
@@ -379,12 +443,15 @@ public class ResourceManager implements IResourceManager
 		Customer customer = new Customer(cid);
 		writeData(xid, customer.getKey(), customer);
 		Trace.info("RM::newCustomer(" + cid + ") returns ID=" + cid);
+		long end = System.nanoTime();
+		Trace.info("RM::Response Time:	" + (end-start));
 		return cid;
 	}
 
 	public boolean newCustomer(int xid, int customerID)
 			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
+		long start = System.nanoTime();
 		Trace.info("RM::newCustomer(" + xid + ", " + customerID + ") called");
 		Customer customer = (Customer)readData(xid, Customer.getKey(customerID));
 		if (customer == null)
@@ -392,11 +459,15 @@ public class ResourceManager implements IResourceManager
 			customer = new Customer(customerID);
 			writeData(xid, customer.getKey(), customer);
 			Trace.info("RM::newCustomer(" + xid + ", " + customerID + ") created a new customer");
+			long end = System.nanoTime();
+			Trace.info("RM::Response Time:	" + (end-start));
 			return true;
 		}
 		else
 		{
 			Trace.info("INFO: RM::newCustomer(" + xid + ", " + customerID + ") failed--customer already exists");
+			long end = System.nanoTime();
+			Trace.info("RM::Response Time:	" + (end-start));
 			return false;
 		}
 	}
@@ -404,11 +475,14 @@ public class ResourceManager implements IResourceManager
 	public boolean deleteCustomer(int xid, int customerID)
 			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
+		long start = System.nanoTime();
 		Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") called");
 		Customer customer = (Customer)readData(xid, Customer.getKey(customerID));
 		if (customer == null)
 		{
 			Trace.warn("RM::deleteCustomer(" + xid + ", " + customerID + ") failed--customer doesn't exist");
+			long end = System.nanoTime();
+			Trace.info("RM::Response Time:	" + (end-start));
 			return false;
 		}
 		else
@@ -429,6 +503,8 @@ public class ResourceManager implements IResourceManager
 			// Remove the customer from the storage
 			removeData(xid, customer.getKey());
 			Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") succeeded");
+			long end = System.nanoTime();
+			Trace.info("RM::Response Time:	" + (end-start));
 			return true;
 		}
 	}
@@ -437,21 +513,33 @@ public class ResourceManager implements IResourceManager
 	public boolean reserveFlight(int xid, int customerID, int flightNum)
 			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
-		return reserveItem(xid, customerID, Flight.getKey(flightNum), String.valueOf(flightNum));
+		long start = System.nanoTime();
+		boolean res = reserveItem(xid, customerID, Flight.getKey(flightNum), String.valueOf(flightNum));
+		long end = System.nanoTime();
+		Trace.info("RM::Response Time:	" + (end-start));
+		return res;
 	}
 
 	// Adds car reservation to this customer
 	public boolean reserveCar(int xid, int customerID, String location)
 			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
-		return reserveItem(xid, customerID, Car.getKey(location), location);
+		long start = System.nanoTime();
+		boolean res = reserveItem(xid, customerID, Car.getKey(location), location);
+		long end = System.nanoTime();
+		Trace.info("RM::Response Time:	" + (end-start));
+		return res;
 	}
 
 	// Adds room reservation to this customer
 	public boolean reserveRoom(int xid, int customerID, String location)
 			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
-		return reserveItem(xid, customerID, Room.getKey(location), location);
+		long start = System.nanoTime();
+		boolean res = reserveItem(xid, customerID, Room.getKey(location), location);
+		long end = System.nanoTime();
+		Trace.info("RM::Response Time:	" + (end-start));
+		return res;
 	}
 
 	// Reserve bundle
