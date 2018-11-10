@@ -31,10 +31,18 @@ public abstract class TestClient
 
 		BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
 
-		while (true)
+		for (int i=0; i< 10; i++)
 		{
+			long start = System.nanoTime();
 			String[] input = {"addFlight", "addCars", "addRooms"};
 			this.test(input);
+			long end = System.nanoTime();
+			long resTime = end-start;
+
+			try {	
+				Thread.sleep(100 - (int)(resTime/1000000));
+			} catch (Exception e) {
+			}
 		}
 	}
 
@@ -45,12 +53,12 @@ public abstract class TestClient
 		Vector<String> arguments = new Vector<String>();
 
 		this.startNew();
-		String[] command_arr = new String[commands.length + 2];
+		String[] command_arr = new String[commands.length + 1];
 		for (int i=0; i<commands.length; i++) {
-			command_arr[i] = (commands[i] + ',' + global_xid + ",1,1,1");
+			command_arr[i] = (commands[i] + ',' + global_xid + "," + global_xid + ",1,1");
 		}
 		command_arr[commands.length] = "commit," + global_xid;
-		command_arr[commands.length + 1] = "quit";
+		// command_arr[commands.length + 1] = "quit";
 		// String[] command_arr = {"addFlight," + global_xid + ",1,1,1", "commit," + global_xid ,"quit"};
 
 		for (int i=0;i<command_arr.length;i++){
