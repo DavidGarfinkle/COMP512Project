@@ -10,6 +10,8 @@ import java.rmi.RemoteException;
 import Server.Interface.*;
 import Server.LockManager.*;
 
+import java.util.logging.*;
+
 import java.util.*;
 
 public class ResourceManager implements IResourceManager
