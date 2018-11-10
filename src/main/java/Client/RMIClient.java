@@ -10,7 +10,7 @@ import java.rmi.NotBoundException;
 import java.util.*;
 import java.io.*;
 
-public class RMIClient extends Client
+public class RMIClient extends TestClient
 {
 	private static String s_serverHost = "localhost";
 	private static int s_serverPort = 1099;

@@ -40,6 +40,7 @@ public abstract class TestClient
 			long resTime = end-start;
 
 			try {	
+                // sleep 1/10th a second less the time it took for the response
 				Thread.sleep(100 - (int)(resTime/1000000));
 			} catch (Exception e) {
 			}

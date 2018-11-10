@@ -81,7 +81,7 @@ public class ResourceManager implements IResourceManager
 			synchronized(m_data) {
 				m_data_tx.get(xid).put(key, value);
 				long end = System.nanoTime();
-                //performanceLogger.log(Level.INFO, String.join(",", "RM-" + m_name + "::writeData(" + String.join(String.valueOf(xid), key) + ")", String.valueOf(start), String.valueOf(end), String.valueOf(end - start)));
+                performanceLogger.log(Level.INFO, String.join(",", "RM-" + m_name + "::writeData(" + String.join(String.valueOf(xid), key) + ")", String.valueOf(start), String.valueOf(end), String.valueOf(end - start)));
 				// Trace.info("DB::Response Time:	" + (end-start));
 			}
 		}
@@ -96,7 +96,7 @@ public class ResourceManager implements IResourceManager
 			synchronized(m_data) {
 				m_data_tx.get(xid).remove(key);
 				long end = System.nanoTime();
-                //performanceLogger.log(Level.INFO, String.join(",", "RM-" + m_name + "::endData(" + String.join(String.valueOf(xid), key) + ")", String.valueOf(start), String.valueOf(end), String.valueOf(end - start)));
+                performanceLogger.log(Level.INFO, String.join(",", "RM-" + m_name + "::removeData(" + String.join(String.valueOf(xid), key) + ")", String.valueOf(start), String.valueOf(end), String.valueOf(end - start)));
 				// Trace.info("DB::Response Time:	" + (end-start));
 			}
 		}
