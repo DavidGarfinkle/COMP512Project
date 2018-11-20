@@ -31,8 +31,9 @@ public class ResourceManager implements IResourceManager
 			if (m_lock.Lock(xid,key,TransactionLockObject.LockType.LOCK_READ)){
 				// if read lock granted
 				synchronized(m_data) {
+					// Get a clone of item from m_data
 					// Always ensure the hashtable has an entry for xid or else commit will throw null pointer
-					RMItem item = m_data_tx.get(xid).get(key);
+					RMItem item = m_data.get(xid).get(key);
 					if (item != null) {
 						return (RMItem)item.clone();
 					}
@@ -108,7 +109,8 @@ public class ResourceManager implements IResourceManager
 			throw new InvalidTransactionException(xid, "Cannot start a transaction already underway");
 		}
 		else {
-			m_data_tx.put(xid, (RMHashMap)m_data.clone());
+			// generate a empty RMHashMap to store transaction's edited items
+			m_data_tx.put(xid, new RMHashMap());
 		}
 	}
 
@@ -117,7 +119,7 @@ public class ResourceManager implements IResourceManager
 		if (!m_data_tx.containsKey(xid)) {
 			throw new InvalidTransactionException(xid, m_name + " ResourceManager cannot commit a transaction that has not been initialized");
 		}
-		m_data = m_data_tx.get(xid);
+		m_data.get(xid).putAll(m_data_tx.get(xid));
 		m_lock.UnlockAll(xid);
 		return true;
 	}
