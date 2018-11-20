@@ -17,11 +17,12 @@ public class ResourceManager implements IResourceManager
 	protected String m_name = "";
 	protected RMHashMap m_data = new RMHashMap();
 	protected Hashtable<Integer, RMHashMap> m_data_tx = new Hashtable<Integer, RMHashMap>();
-	protected LockManager m_lock = new LockManager();
+	protected LockManager m_lock;
 
 	public ResourceManager(String p_name)
 	{
 		m_name = p_name;
+		m_lock = new LockManager(m_name);
 	}
 
 	// Reads a data item
