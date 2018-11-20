@@ -19,10 +19,10 @@ public class ResourceManager implements IResourceManager
 	protected RMHashMap m_data = new RMHashMap();
 	protected Hashtable<Integer, RMHashMap> m_data_tx = new Hashtable<Integer, RMHashMap>();
 	protected LockManager m_lock = new LockManager();
-	protected static ReadWrite readWrite; 
+	protected static ReadWrite readWrite;
 
 	protected static String rootPath = "./";
-	protected static String masterRecordPath = "master_record.txt"; 
+	protected static String masterRecordPath = "master_record.txt";
 	protected static String newRecordPath = "new_record.txt";
 
 	public ResourceManager(String p_name)
@@ -140,7 +140,7 @@ public class ResourceManager implements IResourceManager
 	// vote req method
 	public boolean voteRequest(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException{
 		try{
-			// commit writes to local file 
+			// commit writes to local file
 			commit(xid);
 		}
 		catch(Exception e){
@@ -182,7 +182,7 @@ public class ResourceManager implements IResourceManager
 		readWrite.writeObject(m_data, masterRecordPath);
 		return true;
 	}
-	
+
 	public void abort(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
 		Trace.info("RM(" + m_name + ")::abort(" + xid + ") called");
 		if (!m_data_tx.containsKey(xid)){
