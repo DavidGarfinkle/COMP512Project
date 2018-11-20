@@ -19,10 +19,10 @@ public class ResourceManager implements IResourceManager
 	protected RMHashMap m_data = new RMHashMap();
 	protected Hashtable<Integer, RMHashMap> m_data_tx = new Hashtable<Integer, RMHashMap>();
 	protected LockManager m_lock = new LockManager();
-	protected static ReadWrite readWrite; 
+	protected static ReadWrite readWrite;
 
 	protected static String rootPath = "./";
-	protected static String masterRecordPath = "master_record.txt"; 
+	protected static String masterRecordPath = "master_record.txt";
 	protected static String newRecordPath = "new_record.txt";
 	private int mode;
 
@@ -145,7 +145,7 @@ public class ResourceManager implements IResourceManager
 			if(this.mode == 1){
 				Trace.info("RM(" + xid + ")::crash mode 1 --- Crashed after receiving voteRequest");
         		System.exit(1);
-			} 
+			}
 			commit(xid);
 		}
 		catch(Exception e){
@@ -187,7 +187,7 @@ public class ResourceManager implements IResourceManager
 		readWrite.writeObject(m_data, masterRecordPath);
 		return true;
 	}
-	
+
 	// dummy method
 	public void crashMiddleware(int mode) throws RemoteException, TransactionAbortedException, InvalidTransactionException{
 	}
@@ -195,7 +195,7 @@ public class ResourceManager implements IResourceManager
 	public void crashResourceManager(int mode) throws RemoteException, TransactionAbortedException, InvalidTransactionException{
 		this.mode = mode;
 	}
-	
+
 	public void abort(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
 		Trace.info("RM(" + m_name + ")::abort(" + xid + ") called");
 		if (!m_data_tx.containsKey(xid)){

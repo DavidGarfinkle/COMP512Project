@@ -152,7 +152,7 @@ public class TransactionManager {
   }
 
   public void abort(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
-    Trace.info("TM::abort called");
+    Trace.info("TM::abort(" + xid + ") called");
 		if (!activeTransactions.containsKey(xid)){
 			throw new InvalidTransactionException(xid, "Transaction manager cannot abort a transaction that has not been initialized");
 		}

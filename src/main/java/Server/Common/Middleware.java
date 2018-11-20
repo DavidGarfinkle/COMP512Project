@@ -173,7 +173,11 @@ public class Middleware implements IResourceManager {
     TM.processTransaction(xid, carRM);
     TM.processTransaction(xid, flightRM);
     TM.processTransaction(xid, roomRM);
-    return "Flight bill: \n" + flightRM.queryCustomerInfo(xid, cid) + "\nRoom bill: \n" + roomRM.queryCustomerInfo(xid, cid) + "\nCar bill: \n" + carRM.queryCustomerInfo(xid, cid);
+		String s = "Bill for customer " + cid + ";";
+    s += flightRM.queryCustomerInfo(xid, cid);
+    s += roomRM.queryCustomerInfo(xid, cid);
+    s += carRM.queryCustomerInfo(xid, cid);
+    return s;
   }
 
   public int queryFlightPrice(int xid, int flightNumber)
