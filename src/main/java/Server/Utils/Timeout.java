@@ -3,6 +3,7 @@ package Server.Utils;
 import Server.LockManager.*;
 import java.util.Date;
 import java.util.TimerTask;
+import java.util.*;
 
 public class Timeout extends TimerTask{
 
@@ -15,17 +16,11 @@ public class Timeout extends TimerTask{
   }
 
   public void run() {
+    System.out.println("Timeout::run() --- xid " + this.xid + " timing out!");
     try {
       TM.abort(xid);
     } catch (Exception e) {
       System.out.println(e);
     }
-    // if (m_date.getTime() - obj.getTime() > 30000) {
-    //   try {
-    //     TM.abort(obj.getXId());
-    //   } catch (Exception e) {
-    //     System.out.println(e);
-    //   }
-    // }
   }
 }

@@ -61,6 +61,9 @@ public abstract class Client
 			catch (ConnectException|UnmarshalException e) {
 				System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0mConnection to server lost");
 			}
+			catch (InvalidTransactionException e) {
+				System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0m" + e.getLocalizedMessage());
+			}
 			catch (Exception e) {
 				System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0mUncaught exception");
 				e.printStackTrace();
@@ -418,7 +421,7 @@ public abstract class Client
 			case Start: {
 				checkArgumentsCount(1, arguments.size());
 
-				System.out.println("Starting a new transaction");
+				System.out.println("Client::execute() Case 'Start': Starting a new transaction");
 				int xid = m_resourceManager.start();
 				if (xid == -1) {
 					System.out.println("Could not start a new transaction.");
