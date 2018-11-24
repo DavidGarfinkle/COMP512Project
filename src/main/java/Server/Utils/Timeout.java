@@ -22,12 +22,5 @@ public class Timeout extends TimerTask{
     } catch (Exception e) {
       System.out.println(e);
     }
-    // if (m_date.getTime() - obj.getTime() > 30000) {
-    //   try {
-    //     TM.abort(obj.getXId());
-    //   } catch (Exception e) {
-    //     System.out.println(e);
-    //   }
-    // }
   }
 }
