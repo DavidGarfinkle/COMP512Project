@@ -33,7 +33,7 @@ public class ResourceManager implements IResourceManager
 				synchronized(m_data) {
 					// Get a clone of item from m_data
 					// Always ensure the hashtable has an entry for xid or else commit will throw null pointer
-					RMItem item = m_data.get(xid).get(key);
+					RMItem item = m_data.get(key);
 					if (item != null) {
 						return (RMItem)item.clone();
 					}
@@ -119,7 +119,7 @@ public class ResourceManager implements IResourceManager
 		if (!m_data_tx.containsKey(xid)) {
 			throw new InvalidTransactionException(xid, m_name + " ResourceManager cannot commit a transaction that has not been initialized");
 		}
-		m_data.get(xid).putAll(m_data_tx.get(xid));
+		m_data.putAll(m_data_tx.get(xid));
 		m_lock.UnlockAll(xid);
 		return true;
 	}
