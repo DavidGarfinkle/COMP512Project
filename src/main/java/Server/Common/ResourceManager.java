@@ -33,7 +33,7 @@ public class ResourceManager implements IResourceManager
 				synchronized(m_data) {
 					// Get a clone of item from m_data
 					// Always ensure the hashtable has an entry for xid or else commit will throw null pointer
-					RMItem item = m_data.get(xid).get(key);
+					RMItem item = m_data.get(key);
 					if (item != null) {
 						return (RMItem)item.clone();
 					}
@@ -54,6 +54,8 @@ public class ResourceManager implements IResourceManager
 		if (m_lock.Lock(xid,key,TransactionLockObject.LockType.LOCK_WRITE)){
 			// if write lock granted
 			synchronized(m_data) {
+
+				//put only the changed item in new hashmap
 				m_data_tx.get(xid).put(key, value);
 			}
 		}
@@ -65,7 +67,9 @@ public class ResourceManager implements IResourceManager
 		// if write lock granted
 		if (m_lock.Lock(xid,key,TransactionLockObject.LockType.LOCK_WRITE)){
 			synchronized(m_data) {
-				m_data_tx.get(xid).remove(key);
+
+				//set item to null in changed map to represent removal
+				m_data_tx.get(xid).put(key, null);
 			}
 		}
 
@@ -119,7 +123,16 @@ public class ResourceManager implements IResourceManager
 		if (!m_data_tx.containsKey(xid)) {
 			throw new InvalidTransactionException(xid, m_name + " ResourceManager cannot commit a transaction that has not been initialized");
 		}
-		m_data.get(xid).putAll(m_data_tx.get(xid));
+
+		//merge changed items map with original, overwriting changed items
+		m_data.putAll(m_data_tx.get(xid));
+
+		//remove null items
+		m_data.forEach((k,v) -> {
+			if (v == null) {
+				m_data.remove(k);
+			}
+		});
 		m_lock.UnlockAll(xid);
 		return true;
 	}

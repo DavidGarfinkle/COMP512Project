@@ -19,7 +19,7 @@ public class TransactionManager {
   protected static IncrementingInteger xidPicker = new IncrementingInteger();
   protected static Hashtable<Integer, TimerTask> timeoutTable = new Hashtable<Integer, TimerTask>();
   private static Timer timer;
-  private static int TIMEOUT_LENGTH = 30000;
+  private static int TIMEOUT_LENGTH = 120000;
 
   public TransactionManager() {
     Trace.info("TM::TransactionManager() Constructor");
