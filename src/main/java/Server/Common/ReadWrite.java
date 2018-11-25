@@ -11,19 +11,22 @@ public class ReadWrite implements Serializable
         PATH = path;
     }
 
-    // TODO: Move traces to readwrite
-    public void writeObject(RMHashMap d_object, String subPath)
-    {
+    public void writeObject(RMHashMap d_object, String subPath) {
         try (ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream(PATH + subPath))) {
+            Trace.info("RM::writeObject(" + PATH + subPath + ") called--");
             os.writeObject(d_object);
         } catch (IOException e) {
-            System.err.println(e);
+            Trace.warn("RM::writeObject(" + PATH + subPath + ") failed--"+ e);
         }
     }
 
-    public RMHashMap readObject(String subPath) throws ClassNotFoundException, IOException
-    {
-        ObjectInputStream is = new ObjectInputStream(new FileInputStream(PATH + subPath));
-        return (RMHashMap) is.readObject();
+    public RMHashMap readObject(String subPath) {
+        try (ObjectInputStream is = new ObjectInputStream(new FileInputStream(PATH + subPath))) {
+            Trace.info("RM::readObject(" + PATH + subPath + ") called--");
+            return (RMHashMap) is.readObject();
+        } catch (Exception e) {
+            Trace.warn("RM::readObject(" + PATH + subPath + ") failed--"+ e);
+            return null;
+        }
     }
 }

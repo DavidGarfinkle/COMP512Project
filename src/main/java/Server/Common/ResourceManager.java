@@ -10,7 +10,6 @@ import java.rmi.RemoteException;
 import Server.Interface.*;
 import Server.LockManager.*;
 
-import java.io.*;
 import java.util.*;
 
 public class ResourceManager implements IResourceManager
@@ -29,12 +28,7 @@ public class ResourceManager implements IResourceManager
 	{
 		m_name = p_name;
 		readWrite = new ReadWrite(rootPath);
-		try {
-			m_data = readWrite.readObject(masterRecordPath);
-			Trace.info("RM::readObject(" + rootPath + masterRecordPath + ") called--");
-		} catch (Exception e) {
-			Trace.warn("RM::readObject(" + rootPath + masterRecordPath + ") failed--"+ e);
-		}
+		m_data = readWrite.readObject(masterRecordPath);
 	}
 
 
