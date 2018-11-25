@@ -47,6 +47,11 @@ public class Middleware implements IResourceManager {
     return TM.commit(xid);
   }
 
+  // dummy method
+  public boolean doCommit(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+    return true;
+  }
+
   public void abort(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info("MW::abort called");
 

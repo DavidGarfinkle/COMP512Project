@@ -139,11 +139,19 @@ public class ResourceManager implements IResourceManager
 
 	// vote req method
 	public boolean voteRequest(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException{
-		// writing to file goes here (dennis)
+		try{
+			// commit writes to local file 
+			commit(xid);
+		}
+		catch(Exception e){
+			System.out.println(e);
+			return false;
+		}
 		return true;
 	}
+
 	public boolean commit(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
-		Trace.info("RM(" + m_name + ")::commit(" + xid + ") called");
+		Trace.info("RM(" + m_name + ")::local commit(" + xid + ") called");
 		if (!m_data_tx.containsKey(xid)) {
 			throw new InvalidTransactionException(xid, m_name + " ResourceManager cannot commit a transaction that has not been initialized");
 		}
@@ -159,7 +167,9 @@ public class ResourceManager implements IResourceManager
 		});
 
 		/* Testing writing */
+		// should be localRecordpath
 		readWrite.writeObject(m_data, masterRecordPath);
+		Trace.info("RM(" + m_name + ")::txn(" + xid + ") wrote to local file --- ready to commit");
 		/* Testing writing */
 
 
@@ -167,6 +177,12 @@ public class ResourceManager implements IResourceManager
 		return true;
 	}
 
+	// make changes (commit) to master record (global commit)
+	public boolean doCommit(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException{
+		readWrite.writeObject(m_data, masterRecordPath);
+		return true;
+	}
+	
 	public void abort(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
 		Trace.info("RM(" + m_name + ")::abort(" + xid + ") called");
 		if (!m_data_tx.containsKey(xid)){

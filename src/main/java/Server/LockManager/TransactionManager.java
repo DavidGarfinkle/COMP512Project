@@ -68,7 +68,7 @@ public class TransactionManager {
     if (!abort){
       for (IResourceManager rm : involvedResourceManagers.get(xid)) {
         try {
-          rm.commit(xid);
+          rm.doCommit(xid);
         } catch (Exception e) {
           System.out.println(e);
         }

@@ -48,6 +48,13 @@ public interface IResourceManager extends Remote
     public boolean voteRequest(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException;
 
     /**
+     * Vote request from TM to see if a rm can commit.
+     *
+     * @return Success
+     */
+    public boolean doCommit(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException;
+
+    /**
      * Abort the current transaction.
      *
      * @return Success
