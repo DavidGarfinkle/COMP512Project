@@ -118,6 +118,11 @@ public class ResourceManager implements IResourceManager
 		}
 	}
 
+	// vote req method
+	public boolean voteRequest(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException{
+		// writing to file goes here (dennis)
+		return true;
+	}
 	public boolean commit(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
 		Trace.info("RM(" + m_name + ")::commit(" + xid + ") called");
 		if (!m_data_tx.containsKey(xid)) {
