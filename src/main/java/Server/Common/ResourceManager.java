@@ -10,6 +10,7 @@ import java.rmi.RemoteException;
 import Server.Interface.*;
 import Server.LockManager.*;
 
+import java.io.*;
 import java.util.*;
 
 public class ResourceManager implements IResourceManager
@@ -18,11 +19,24 @@ public class ResourceManager implements IResourceManager
 	protected RMHashMap m_data = new RMHashMap();
 	protected Hashtable<Integer, RMHashMap> m_data_tx = new Hashtable<Integer, RMHashMap>();
 	protected LockManager m_lock = new LockManager();
+	protected static ReadWrite readWrite; 
+
+	protected static String rootPath = "./";
+	protected static String masterRecordPath = "master_record.txt"; 
+	protected static String newRecordPath = "new_record.txt";
 
 	public ResourceManager(String p_name)
 	{
 		m_name = p_name;
+		readWrite = new ReadWrite(rootPath);
+		try {
+			m_data = readWrite.readObject(masterRecordPath);
+			Trace.info("RM::readObject(" + rootPath + masterRecordPath + ") called--");
+		} catch (Exception e) {
+			Trace.warn("RM::readObject(" + rootPath + masterRecordPath + ") failed--"+ e);
+		}
 	}
+
 
 	// Reads a data item
 	protected RMItem readData(int xid, String key) throws DeadlockException
@@ -143,6 +157,12 @@ public class ResourceManager implements IResourceManager
 				m_data.remove(k);
 			}
 		});
+
+		/* Testing writing */
+		readWrite.writeObject(m_data, masterRecordPath);
+		/* Testing writing */
+
+
 		m_lock.UnlockAll(xid);
 		return true;
 	}
