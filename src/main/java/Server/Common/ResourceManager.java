@@ -31,9 +31,14 @@ public class ResourceManager implements IResourceManager
 			if (m_lock.Lock(xid,key,TransactionLockObject.LockType.LOCK_READ)){
 				// if read lock granted
 				synchronized(m_data) {
-					// Get a clone of item from m_data
-					// Always ensure the hashtable has an entry for xid or else commit will throw null pointer
-					RMItem item = m_data.get(key);
+					RMItem item;
+					if (m_data_tx.get(xid).containsKey(key)) {
+						// If a changed copy of the item exists, read that copy from uncommited changes
+						item = m_data_tx.get(xid).get(key);
+					} else {
+						// Else get a clone of item from m_data
+						item = m_data.get(key);
+					}
 					if (item != null) {
 						return (RMItem)item.clone();
 					}
