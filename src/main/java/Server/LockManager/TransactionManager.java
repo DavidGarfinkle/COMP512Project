@@ -19,7 +19,7 @@ public class TransactionManager {
   protected static IncrementingInteger xidPicker = new IncrementingInteger();
   protected static Hashtable<Integer, TimerTask> timeoutTable = new Hashtable<Integer, TimerTask>();
   private static Timer timer;
-  private static int TIMEOUT_LENGTH = 30000;
+  private static int TIMEOUT_LENGTH = 120000;
 
   public TransactionManager() {
     Trace.info("TM::TransactionManager() Constructor");
@@ -49,11 +49,26 @@ public class TransactionManager {
 		if (!activeTransactions.containsKey(xid)){
 			throw new InvalidTransactionException(xid, "Transaction manager cannot commit a transaction that has not been initialized");
 		}
-
-    if (involvedResourceManagers.containsKey(xid)) {
+    
+    Trace.info("TM::sending vote request to associated RMs");
+    boolean abort = false;
+    for (IResourceManager rm : involvedResourceManagers.get(xid)) {
+      try {
+        // instead of just telling rm to commit, send a vote request
+        if(!rm.voteRequest(xid)){
+          // one of the rms said they couldn't commit, therefore all should abort
+          abort = true;
+          break;
+        }
+      } catch (Exception e) {
+        System.out.println(e);
+      }
+    }
+    // at this point, all involved rms have been asked if they can commit and they all voted yes
+    if (!abort){
       for (IResourceManager rm : involvedResourceManagers.get(xid)) {
         try {
-          rm.commit(xid);
+          rm.doCommit(xid);
         } catch (Exception e) {
           System.out.println(e);
         }
@@ -61,8 +76,11 @@ public class TransactionManager {
       involvedResourceManagers.remove(xid);
       activeTransactions.remove(xid);
     }
-    finishTimer(xid);
+    else{
+      abort(xid);
+    }
 
+    finishTimer(xid);
     return true;
   }
 

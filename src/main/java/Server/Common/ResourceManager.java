@@ -10,6 +10,7 @@ import java.rmi.RemoteException;
 import Server.Interface.*;
 import Server.LockManager.*;
 
+import java.io.*;
 import java.util.*;
 
 public class ResourceManager implements IResourceManager
@@ -18,11 +19,24 @@ public class ResourceManager implements IResourceManager
 	protected RMHashMap m_data = new RMHashMap();
 	protected Hashtable<Integer, RMHashMap> m_data_tx = new Hashtable<Integer, RMHashMap>();
 	protected LockManager m_lock = new LockManager();
+	protected static ReadWrite readWrite; 
+
+	protected static String rootPath = "./";
+	protected static String masterRecordPath = "master_record.txt"; 
+	protected static String newRecordPath = "new_record.txt";
 
 	public ResourceManager(String p_name)
 	{
 		m_name = p_name;
+		readWrite = new ReadWrite(rootPath);
+		try {
+			m_data = readWrite.readObject(masterRecordPath);
+			Trace.info("RM::readObject(" + rootPath + masterRecordPath + ") called--");
+		} catch (Exception e) {
+			Trace.warn("RM::readObject(" + rootPath + masterRecordPath + ") failed--"+ e);
+		}
 	}
+
 
 	// Reads a data item
 	protected RMItem readData(int xid, String key) throws DeadlockException
@@ -31,8 +45,14 @@ public class ResourceManager implements IResourceManager
 			if (m_lock.Lock(xid,key,TransactionLockObject.LockType.LOCK_READ)){
 				// if read lock granted
 				synchronized(m_data) {
-					// Always ensure the hashtable has an entry for xid or else commit will throw null pointer
-					RMItem item = m_data_tx.get(xid).get(key);
+					RMItem item;
+					if (m_data_tx.get(xid).containsKey(key)) {
+						// If a changed copy of the item exists, read that copy from uncommited changes
+						item = m_data_tx.get(xid).get(key);
+					} else {
+						// Else get a clone of item from m_data
+						item = m_data.get(key);
+					}
 					if (item != null) {
 						return (RMItem)item.clone();
 					}
@@ -53,6 +73,8 @@ public class ResourceManager implements IResourceManager
 		if (m_lock.Lock(xid,key,TransactionLockObject.LockType.LOCK_WRITE)){
 			// if write lock granted
 			synchronized(m_data) {
+
+				//put only the changed item in new hashmap
 				m_data_tx.get(xid).put(key, value);
 			}
 		}
@@ -64,7 +86,9 @@ public class ResourceManager implements IResourceManager
 		// if write lock granted
 		if (m_lock.Lock(xid,key,TransactionLockObject.LockType.LOCK_WRITE)){
 			synchronized(m_data) {
-				m_data_tx.get(xid).remove(key);
+
+				//set item to null in changed map to represent removal
+				m_data_tx.get(xid).put(key, null);
 			}
 		}
 
@@ -108,20 +132,57 @@ public class ResourceManager implements IResourceManager
 			throw new InvalidTransactionException(xid, "Cannot start a transaction already underway");
 		}
 		else {
-			m_data_tx.put(xid, (RMHashMap)m_data.clone());
+			// generate a empty RMHashMap to store transaction's edited items
+			m_data_tx.put(xid, new RMHashMap());
 		}
 	}
 
+	// vote req method
+	public boolean voteRequest(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException{
+		try{
+			// commit writes to local file 
+			commit(xid);
+		}
+		catch(Exception e){
+			System.out.println(e);
+			return false;
+		}
+		return true;
+	}
+
 	public boolean commit(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
-		Trace.info("RM(" + m_name + ")::commit(" + xid + ") called");
+		Trace.info("RM(" + m_name + ")::local commit(" + xid + ") called");
 		if (!m_data_tx.containsKey(xid)) {
 			throw new InvalidTransactionException(xid, m_name + " ResourceManager cannot commit a transaction that has not been initialized");
 		}
-		m_data = m_data_tx.get(xid);
+
+		//merge changed items map with original, overwriting changed items
+		m_data.putAll(m_data_tx.get(xid));
+
+		//remove null items
+		m_data.forEach((k,v) -> {
+			if (v == null) {
+				m_data.remove(k);
+			}
+		});
+
+		/* Testing writing */
+		// should be localRecordpath
+		readWrite.writeObject(m_data, masterRecordPath);
+		Trace.info("RM(" + m_name + ")::txn(" + xid + ") wrote to local file --- ready to commit");
+		/* Testing writing */
+
+
 		m_lock.UnlockAll(xid);
 		return true;
 	}
 
+	// make changes (commit) to master record (global commit)
+	public boolean doCommit(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException{
+		readWrite.writeObject(m_data, masterRecordPath);
+		return true;
+	}
+	
 	public void abort(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
 		Trace.info("RM(" + m_name + ")::abort(" + xid + ") called");
 		if (!m_data_tx.containsKey(xid)){
