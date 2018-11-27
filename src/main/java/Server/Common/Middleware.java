@@ -58,6 +58,12 @@ public class Middleware implements IResourceManager {
 		TM.abort(xid);
   }
 
+  public void crashMiddleware(int mode) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+    Trace.info("MW::crash called");
+
+    TM.crash(mode);
+  }
+
   public boolean addFlight(int xid, int flightnumber, int flightSeats, int flightPrice)
       throws RemoteException, TransactionAbortedException, InvalidTransactionException, DeadlockException {
     Trace.info("MW::addFlight(" + xid + ", " + flightnumber + ", " + flightSeats + ", $"

@@ -20,6 +20,7 @@ public class TransactionManager {
   protected static Hashtable<Integer, TimerTask> timeoutTable = new Hashtable<Integer, TimerTask>();
   private static Timer timer;
   private static int TIMEOUT_LENGTH = 120000;
+  private int mode;
 
   public TransactionManager() {
     Trace.info("TM::TransactionManager() Constructor");
@@ -100,6 +101,10 @@ public class TransactionManager {
     involvedResourceManagers.remove(xid);
     activeTransactions.remove(xid);
     finishTimer(xid);
+  }
+
+  public void crash(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+
   }
 
   public void checkTransaction(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
