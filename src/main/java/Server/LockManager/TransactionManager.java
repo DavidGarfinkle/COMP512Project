@@ -53,6 +53,14 @@ public class TransactionManager {
 
     Trace.info("TM(" + xid + ")::sending vote request to associated RMs");
     boolean abort = false;
+
+    // type 1 TM crash (mode = 1)
+    if (mode == 1){
+      Trace.info("TM(" + xid + ")::crash mode 1 --- before sending vote requests");
+      System.exit(1);
+    }
+
+    
     for (IResourceManager rm : involvedResourceManagers.get(xid)) {
       try {
         // instead of just telling rm to commit, send a vote request
@@ -104,7 +112,7 @@ public class TransactionManager {
   }
 
   public void crash(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
-
+    this.mode = mode;
   }
 
   public void checkTransaction(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
