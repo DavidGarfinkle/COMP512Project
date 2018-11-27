@@ -63,6 +63,7 @@ public class TransactionManager {
     // create dictionary for those who voted yes and those who voted no
     Map<Boolean, ArrayList<String>> dict = new HashMap<Boolean,ArrayList<String>>();
 
+    // sending out voteRequests phase
     for (IResourceManager rm : involvedResourceManagers.get(xid)) {
       counter +=1;
       // if mode 3 crash initiated
@@ -114,19 +115,35 @@ public class TransactionManager {
       System.exit(1);
     }
 
+    // decison made, now send it to involved RMs
     if (abort){
       // everyone should abort
       abort(xid);
     }
     else{
       // at this point, all involed RMs voted yes to commit, therefore can do global commit
+      counter = 0;
       for (IResourceManager rm : involvedResourceManagers.get(xid)) {
+        counter ++;
+        // if mode 6 crash initiated
+        if (this.mode == 6 && counter>1){
+          // at least one RM recieved decision
+          Trace.info("TM(" + xid + ")::crash mode 6 --- Crashed after sending decision to one but not all involvedResourceManagers");
+          System.exit(1);
+        }
         try {
           rm.doCommit(xid);
         } catch (Exception e) {
           System.out.println(e);
         }
       }
+    }
+
+    // if mode 7 crash initiated
+    if (this.mode == 7 && counter>1){
+      // at least one RM recieved decision
+      Trace.info("TM(" + xid + ")::crash mode 7 --- Crashed after sending decision to all involvedResourceManagers");
+      System.exit(1);
     }
     involvedResourceManagers.remove(xid);
     activeTransactions.remove(xid);
