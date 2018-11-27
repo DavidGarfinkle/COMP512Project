@@ -60,8 +60,15 @@ public class TransactionManager {
       System.exit(1);
     }
 
-    
+    int counter = 0;
     for (IResourceManager rm : involvedResourceManagers.get(xid)) {
+      counter +=1;
+      // if mode 3 crash initiated
+      if (this.mode == 3 && counter <1){
+        // at least one vote request was sent
+        Trace.info("TM(" + xid + ")::crash mode 3 --- Crashed after receiving some replies but not all");
+        System.exit(1);
+      }
       try {
         // instead of just telling rm to commit, send a vote request
         if(!rm.voteRequest(xid)){
