@@ -46,12 +46,12 @@ public class TransactionManager {
   }
 
   public boolean commit(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
-    Trace.info("TM::commit called");
+    Trace.info("TM(" + xid + ")::commit called");
 		if (!activeTransactions.containsKey(xid)){
 			throw new InvalidTransactionException(xid, "Transaction manager cannot commit a transaction that has not been initialized");
 		}
-    
-    Trace.info("TM::sending vote request to associated RMs");
+
+    Trace.info("TM(" + xid + ")::sending vote request to associated RMs");
     boolean abort = false;
     for (IResourceManager rm : involvedResourceManagers.get(xid)) {
       try {
