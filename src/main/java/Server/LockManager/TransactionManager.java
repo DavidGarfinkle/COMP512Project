@@ -55,7 +55,7 @@ public class TransactionManager {
     boolean abort = false;
 
     // type 1 TM crash (mode = 1)
-    if (mode == 1){
+    if (this.mode == 1){
       Trace.info("TM(" + xid + ")::crash mode 1 --- before sending vote requests");
       System.exit(1);
     }
@@ -111,7 +111,7 @@ public class TransactionManager {
     finishTimer(xid);
   }
 
-  public void crash(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+  public void crash(int mode) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     this.mode = mode;
   }
 

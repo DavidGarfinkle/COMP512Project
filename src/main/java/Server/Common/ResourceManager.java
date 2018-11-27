@@ -183,6 +183,11 @@ public class ResourceManager implements IResourceManager
 		return true;
 	}
 	
+	// dummy method
+	public void crashMiddleware(int mode) throws RemoteException, TransactionAbortedException, InvalidTransactionException{
+
+	}
+	
 	public void abort(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
 		Trace.info("RM(" + m_name + ")::abort(" + xid + ") called");
 		if (!m_data_tx.containsKey(xid)){

@@ -60,6 +60,13 @@ public interface IResourceManager extends Remote
      * @return Success
      */
     public void abort(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException;
+
+    /**
+     * Crash Middleware/Transaction manager.
+     *
+     * @return Success
+     */
+    public void crashMiddleware(int mode) throws RemoteException, TransactionAbortedException, InvalidTransactionException;
     
     /**
      * Add seats to a flight.

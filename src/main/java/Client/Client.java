@@ -456,7 +456,7 @@ public abstract class Client
 			case CrashMiddleware: {
 				checkArgumentsCount(2, arguments.size());
 				int mode = Integer.parseInt(arguments.elementAt(1));
-				System.out.println.("CrashMiddleware with mode	" + mode);
+				System.out.println("CrashMiddleware with mode	" + mode);
 				try {
 					m_resourceManager.crashMiddleware(mode);
 					System.out.println("Crash Initiated");
