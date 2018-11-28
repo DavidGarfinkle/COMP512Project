@@ -24,6 +24,13 @@ import java.util.*;
 
 public interface IResourceManager extends Remote
 {
+     /**
+     * Start a new transaction by sending a request to middleware and transaction manager
+     *
+     * @return The transaction number of the new started transaction, or -1 if failed
+     */
+    public boolean checkConnection() throws RemoteException;
+
     public int start() throws RemoteException, TransactionAbortedException, InvalidTransactionException;
 
     /**

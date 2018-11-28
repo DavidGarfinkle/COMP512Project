@@ -39,12 +39,17 @@ public class TimeManager {
     this.C = C;
   }
 
-  private Timeout createTimeout() {
+  private Timeout createTimeout(int xid) {
     Timeout timeout = null;
     if (TM != null) {
       timeout = new Timeout(xid, TM);
       timerName = "TransactionManager---Transaction(" + xid + ")";
     }
+    return timeout;
+  }
+
+  private Timeout createTimeout() {
+    Timeout timeout = null;
     if (MW != null) {
       timeout =  new Timeout(MW, rmName);
       timerName = "Middleware---RM:(" + rmName + ")";
@@ -62,21 +67,45 @@ public class TimeManager {
     timeout.cancel();
 
     // schedule new TimerTask
+    timeout = createTimeout(xid);
+    timer.schedule(timeout, TIMEOUT_LENGTH);
+    timeoutTable.put(xid, timeout);
+    // Trace.info(timerName + "::resetTimer called");
+  }
+
+  public void resetTimer() {
+    // cancel previous TimerTask
+    TimerTask timeout = timeoutTable.get(xid);
+    timeout.cancel();
+
+    // schedule new TimerTask
     timeout = createTimeout();
     timer.schedule(timeout, TIMEOUT_LENGTH);
     timeoutTable.put(xid, timeout);
-    Trace.info(timerName + "::resetTimer called");
+    // Trace.info(timerName + "::resetTimer called");
   }
 
   public void startTimer(int xid) {
+    TimerTask timeout = createTimeout(xid);
+    timer.schedule(timeout, TIMEOUT_LENGTH);
+    timeoutTable.put(xid, timeout);
+    // Trace.info(timerName + "::startTimer called");
+  }
+
+  public void startTimer() {
     TimerTask timeout = createTimeout();
     timer.schedule(timeout, TIMEOUT_LENGTH);
     timeoutTable.put(xid, timeout);
-    Trace.info(timerName + "::startTimer called");
+    // Trace.info(timerName + "::startTimer called");
   }
 
   public void finishTimer(int xid) {
     timeoutTable.get(xid).cancel();
-    Trace.info(timerName + "::finishTimer called");
+    // Trace.info(timerName + "::finishTimer called");
+  }
+
+  public void finishTimer() {
+    timeoutTable.get(xid).cancel();
+    // Trace.info(timerName + "::finishTimer called");
   }
 }

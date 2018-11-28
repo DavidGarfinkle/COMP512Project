@@ -128,18 +128,21 @@ public class TransactionManager {
       rm.start(xid);
       involvedResourceManagers.get(xid).add(rm);
     }
+    resetRMTimer(rm);
+  }
 
+  public void resetRMTimer(IResourceManager rm) throws RemoteException {
     switch (rm.getName()) {
       case ("Flight"): {
-        rmTimeManagers.get("Flight").resetTimer(0);
+        rmTimeManagers.get("Flight").resetTimer();
         break;
       }
       case ("Car"): {
-        rmTimeManagers.get("Car").resetTimer(0);
+        rmTimeManagers.get("Car").resetTimer();
         break;
       }
       case ("Room"): {
-        rmTimeManagers.get("Room").resetTimer(0);
+        rmTimeManagers.get("Room").resetTimer();
         break;
       }
     }

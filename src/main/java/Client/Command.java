@@ -1,6 +1,7 @@
 package Client;
 
 public enum Command {
+	CheckConnection("Check connection to middleware", ""),
 	Help("List all available commands", "[CommandName]"),
 
 	AddFlight("Add a new flight number", "<xid>,<FlightNumber>,<NumberOfSeats>,<PricePerSeat>"),

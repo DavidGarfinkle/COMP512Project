@@ -9,23 +9,26 @@ public class ReadWrite implements Serializable
 
     public ReadWrite(String path) {
         PATH = path;
+        new File(PATH).mkdir();
     }
 
     public void writeObject(Object d_object, String subPath) {
-        try (ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream(PATH + subPath))) {
-            Trace.info("RM::writeObject(" + PATH + subPath + ") called--");
+        String fullPath = PATH + "/" + subPath;
+        try (ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream(fullPath))) {
+            Trace.info("RM::writeObject(" + fullPath + ") called--");
             os.writeObject(d_object);
         } catch (IOException e) {
-            Trace.warn("RM::writeObject(" + PATH + subPath + ") failed--"+ e);
+            Trace.warn("RM::writeObject(" + fullPath + ") failed--"+ e);
         }
     }
 
     public Object readObject(String subPath) {
-        try (ObjectInputStream is = new ObjectInputStream(new FileInputStream(PATH + subPath))) {
-            Trace.info("RM::readObject(" + PATH + subPath + ") called--");
+        String fullPath = PATH + "/" + subPath;
+        try (ObjectInputStream is = new ObjectInputStream(new FileInputStream(fullPath))) {
+            Trace.info("RM::readObject(" + fullPath + ") called--");
             return is.readObject();
         } catch (Exception e) {
-            Trace.warn("RM::readObject(" + PATH + subPath + ") failed--"+ e);
+            Trace.warn("RM::readObject(" + fullPath + ") failed--"+ e);
             return null;
         }
     }

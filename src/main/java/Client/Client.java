@@ -21,7 +21,7 @@ public abstract class Client
 		super();
 	}
 
-	public abstract void connectServer();
+	public abstract void reconnectServer();
 
 	public void start()
 	{
@@ -30,7 +30,7 @@ public abstract class Client
 		System.out.println("Location \"help\" for list of supported commands");
 
 		BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
-		timeManager.startTimer(0);
+		timeManager.startTimer();
 
 		while (true)
 		{
@@ -54,8 +54,7 @@ public abstract class Client
 					execute(cmd, arguments);
 				}
 				catch (ConnectException e) {
-					timeManager.finishTimer(0);
-					connectServer();
+					reconnectServer();
 					execute(cmd, arguments);
 				}
 			}
@@ -78,9 +77,19 @@ public abstract class Client
 	public void execute(Command cmd, Vector<String> arguments)
 			throws RemoteException, NumberFormatException, TransactionAbortedException, InvalidTransactionException, DeadlockException
 	{
-		timeManager.resetTimer(0);
+		timeManager.resetTimer();
 		switch (cmd)
 		{
+			case CheckConnection:
+			{
+				try {
+					m_resourceManager.checkConnection();
+				} catch (RemoteException e) {
+					System.err.println("Client---Middleware connection lost! Reconnecting to Middleware");
+					reconnectServer();
+				}
+				break;
+			}
 			case Help:
 			{
 				if (arguments.size() == 1) {

@@ -8,12 +8,12 @@ import java.util.*;
 
 public class Middleware implements IResourceManager {
 
-  protected IResourceManager flightRM;
-  protected IResourceManager carRM;
-  protected IResourceManager roomRM;
+  public IResourceManager flightRM;
+  public IResourceManager carRM;
+  public IResourceManager roomRM;
 
   // Transaction Manager
-  protected TransactionManager TM;
+  public TransactionManager TM;
 
   public static Hashtable<String, TimeManager> timeManagers = new Hashtable<String, TimeManager>();
 
@@ -27,6 +27,10 @@ public class Middleware implements IResourceManager {
     this.carRM = carRM;
     this.roomRM = roomRM;
     this.TM = new TransactionManager(timeManagers);
+  }
+
+  public boolean checkConnection() throws RemoteException {
+    return true;
   }
 
   // dummy method

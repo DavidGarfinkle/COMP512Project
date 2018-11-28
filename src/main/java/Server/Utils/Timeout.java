@@ -2,8 +2,11 @@ package Server.Utils;
 
 import Server.LockManager.*;
 import Server.RMI.RMIMiddleware;
+import Server.Interface.*;
+import Server.Common.*;
 import Client.*;
 import java.util.TimerTask;
+import java.util.*;
 
 public class Timeout extends TimerTask{
 
@@ -26,23 +29,47 @@ public class Timeout extends TimerTask{
   public Timeout(RMIClient C) {
     this.C = C;
   }
-
   public void run() {
     try {
       if (TM != null) {
-        System.out.println("TransactionManager---Transaction(" + xid + ") timed out! Aborting Transaction");
+        Trace.info("TransactionManager---Transaction(" + xid + ") timed out! Aborting Transaction");
         TM.abort(xid);
       }
       if (MW != null) {
-        System.out.println("Middleware---RM:(" + rmName + ") timed out! Reconnecting to RM");
-        MW.reconnectServer(rmName);
+        IResourceManager RM = null;
+        TransactionManager TM = MW.TM;
+        try {
+          switch(rmName) {
+            case("Flight"): {
+              RM = MW.flightRM;
+              break;
+            }
+            case("Car"): {
+              RM = MW.carRM;
+              break;
+            }
+            case("Room"): {
+              RM = MW.roomRM;
+              break;
+            }
+          }
+          Trace.info(rmName + " checkConnection() called");
+          RM.checkConnection();
+          TM.resetRMTimer(RM);
+          Trace.info(rmName + " checkConnection() finished");
+        } catch (Exception e) {
+          Trace.info(rmName + " reconnectServer() called");
+          MW.reconnectServer(rmName);
+          Trace.info(rmName + " reconnectServer() finished");
+        }
       }
       if (C != null) {
-        System.out.println("Client---Middleware timed out! Reconnecting to Middleware");
-        C.reconnectServer();
+        Vector<String> arguments = new Vector<String>();
+        Command cmd = Command.fromString("CheckConnection");
+        C.execute(cmd, arguments);
       }
     } catch (Exception e) {
-      System.out.println(e);
+      System.err.println("Exception in Timeout: " + e);
     }
   }
 }

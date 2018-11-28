@@ -20,7 +20,7 @@ public class ResourceManager implements IResourceManager
 	protected LockManager m_lock = new LockManager();
 	protected static ReadWrite readWrite; 
 
-	protected static String rootPath = "./records/";
+	protected static String rootPath = "./records";
 	protected static String masterRecordPath = "masterRecord.txt";
 	protected static MasterRecord masterRecord;
 
@@ -123,6 +123,10 @@ public class ResourceManager implements IResourceManager
 			}
 		}
 	}
+
+	public boolean checkConnection() throws RemoteException {
+    return true;
+  }
 
 	// dummy method
 	public int start() throws RemoteException, TransactionAbortedException, InvalidTransactionException {

@@ -26,7 +26,7 @@ public class RMIMiddleware extends Middleware {
 	private static String s_carServer = "localhost";
 	private static String s_roomServer = "localhost";
 
-	private static int TIMEOUT_LENGTH = 5000;
+	private static int TIMEOUT_LENGTH = 1000;
 	public static void main(String args[]) {
 
 		if (args.length > 2) {
@@ -85,28 +85,29 @@ public class RMIMiddleware extends Middleware {
 
 	public void connectServers() {
 		connectServer(s_flightServer, s_serverPort, s_flightServerName);
-		timeManagers.get("Flight").startTimer(0);
+		timeManagers.get("Flight").startTimer();
 		connectServer(s_carServer, s_serverPort, s_carServerName);
-		timeManagers.get("Car").startTimer(0);
+		timeManagers.get("Car").startTimer();
 		connectServer(s_roomServer, s_serverPort, s_roomServerName);
-		timeManagers.get("Room").startTimer(0);
+		timeManagers.get("Room").startTimer();
 	}
 
 	public void reconnectServer(String server) {
+		System.out.println("Middleware---RM:(" + server + ") timed out! Reconnecting to RM");
 		switch(server) {
 			case ("Flight"): {
 				connectServer(s_flightServer, s_serverPort, s_flightServerName);
-				timeManagers.get("Flight").resetTimer(0);
+				timeManagers.get("Flight").resetTimer();
 				break;
 			}
 			case ("Car"): {
 				connectServer(s_carServer, s_serverPort, s_carServerName);
-				timeManagers.get("Car").resetTimer(0);
+				timeManagers.get("Car").resetTimer();
 				break;
 			}
 			case ("Room"): {
 				connectServer(s_roomServer, s_serverPort, s_roomServerName);
-				timeManagers.get("Room").resetTimer(0);
+				timeManagers.get("Room").resetTimer();
 				break;
 			}
 		}
