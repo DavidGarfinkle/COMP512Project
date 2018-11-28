@@ -142,10 +142,13 @@ public class ResourceManager implements IResourceManager
 	public boolean voteRequest(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException{
 		try{
 			// commit writes to local file
+<<<<<<< HEAD
 			if(this.mode == 1){
 				Trace.info("RM(" + xid + ")::crash mode 1 --- Crashed after receiving voteRequest");
         		System.exit(1);
 			}
+=======
+>>>>>>> e71df668d5e5e3627fb0c9a3d8656be6583b37c5
 			commit(xid);
 		}
 		catch(Exception e){
@@ -188,6 +191,7 @@ public class ResourceManager implements IResourceManager
 		return true;
 	}
 
+<<<<<<< HEAD
 	// dummy method
 	public void crashMiddleware(int mode) throws RemoteException, TransactionAbortedException, InvalidTransactionException{
 	}
@@ -196,6 +200,8 @@ public class ResourceManager implements IResourceManager
 		this.mode = mode;
 	}
 
+=======
+>>>>>>> e71df668d5e5e3627fb0c9a3d8656be6583b37c5
 	public void abort(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
 		Trace.info("RM(" + m_name + ")::abort(" + xid + ") called");
 		if (!m_data_tx.containsKey(xid)){
