@@ -26,7 +26,7 @@ public class RMIMiddleware extends Middleware {
 	private static String s_carServer = "localhost";
 	private static String s_roomServer = "localhost";
 
-	private static int TIMEOUT_LENGTH = 120000;
+	private static int TIMEOUT_LENGTH = 5000;
 	public static void main(String args[]) {
 
 		if (args.length > 2) {
@@ -96,14 +96,17 @@ public class RMIMiddleware extends Middleware {
 		switch(server) {
 			case ("Flight"): {
 				connectServer(s_flightServer, s_serverPort, s_flightServerName);
+				timeManagers.get("Flight").resetTimer(0);
 				break;
 			}
 			case ("Car"): {
 				connectServer(s_carServer, s_serverPort, s_carServerName);
+				timeManagers.get("Car").resetTimer(0);
 				break;
 			}
 			case ("Room"): {
 				connectServer(s_roomServer, s_serverPort, s_roomServerName);
+				timeManagers.get("Room").resetTimer(0);
 				break;
 			}
 		}

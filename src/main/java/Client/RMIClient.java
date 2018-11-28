@@ -16,7 +16,7 @@ public class RMIClient extends Client
 
 	private static String s_rmiPrefix = "group28";
 
-	private static int TIMEOUT_LENGTH = 120000;
+	private static int TIMEOUT_LENGTH = 5000;
 	public static void main(String args[])
 	{
 		if (args.length > 0)
@@ -60,6 +60,12 @@ public class RMIClient extends Client
 
 	public void connectServer()
 	{
+		connectServer(s_serverHost, s_serverPort, s_serverName);
+	}
+
+	public void reconnectServer()
+	{
+		timeManager.resetTimer(0);
 		connectServer(s_serverHost, s_serverPort, s_serverName);
 	}
 

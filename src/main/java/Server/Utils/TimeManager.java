@@ -16,7 +16,9 @@ public class TimeManager {
   RMIMiddleware MW;
   RMIClient C;
   String rmName;
+  String timerName;
   int xid;
+
 
   public TimeManager (int length, TransactionManager TM) {
     this.TIMEOUT_LENGTH = length;
@@ -41,18 +43,20 @@ public class TimeManager {
     Timeout timeout = null;
     if (TM != null) {
       timeout = new Timeout(xid, TM);
+      timerName = "TransactionManager---Transaction(" + xid + ")";
     }
     if (MW != null) {
       timeout =  new Timeout(MW, rmName);
+      timerName = "Middleware---RM:(" + rmName + ")";
     }
     if (C != null) {
       timeout = new Timeout(C);
+      timerName = "Client---Middleware";
     }
     return timeout;
   }
 
   public void resetTimer(int xid) {
-    Trace.info("TimeManager::resetTimer(" + xid + ") called");
     // cancel previous TimerTask
     TimerTask timeout = timeoutTable.get(xid);
     timeout.cancel();
@@ -61,17 +65,18 @@ public class TimeManager {
     timeout = createTimeout();
     timer.schedule(timeout, TIMEOUT_LENGTH);
     timeoutTable.put(xid, timeout);
+    Trace.info(timerName + "::resetTimer called");
   }
 
   public void startTimer(int xid) {
-    Trace.info("TimeManager::startTimer(" + xid + ") called");
     TimerTask timeout = createTimeout();
     timer.schedule(timeout, TIMEOUT_LENGTH);
     timeoutTable.put(xid, timeout);
+    Trace.info(timerName + "::startTimer called");
   }
 
   public void finishTimer(int xid) {
-    Trace.info("TimeManager::startTimer" + xid + ") called");
     timeoutTable.get(xid).cancel();
+    Trace.info(timerName + "::finishTimer called");
   }
 }
