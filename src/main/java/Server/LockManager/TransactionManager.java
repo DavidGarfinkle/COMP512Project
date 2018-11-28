@@ -17,13 +17,14 @@ public class TransactionManager {
   protected static Hashtable<Integer, TransactionObject> activeTransactions = new Hashtable<Integer, TransactionObject>();
   protected static Hashtable<Integer, Vector<IResourceManager>> involvedResourceManagers = new Hashtable<Integer, Vector<IResourceManager>>();
   protected static IncrementingInteger xidPicker = new IncrementingInteger();
-  protected static Hashtable<Integer, TimerTask> timeoutTable = new Hashtable<Integer, TimerTask>();
-  private static Timer timer;
+  protected Hashtable<String, TimeManager> rmTimeManagers; 
   private static int TIMEOUT_LENGTH = 120000;
+  protected TimeManager txTimeManager;
 
-  public TransactionManager() {
+  public TransactionManager(Hashtable<String, TimeManager> rmTimeManagers) {
     Trace.info("TM::TransactionManager() Constructor");
-    timer = new Timer();
+    txTimeManager = new TimeManager(TIMEOUT_LENGTH, this);
+    this.rmTimeManagers = rmTimeManagers;
   }
 
   public int start() throws RemoteException, TransactionAbortedException, InvalidTransactionException {
@@ -35,7 +36,7 @@ public class TransactionManager {
         activeTransactions.put(xid, tx);
       }
 
-      startTimer(xid);
+      txTimeManager.startTimer(xid);
 
       // Overloaded put() will allocate new vector if first times
       // also will only add distinct ResourceManagers to the vector hashed at txid
@@ -80,7 +81,7 @@ public class TransactionManager {
       abort(xid);
     }
 
-    finishTimer(xid);
+    txTimeManager.finishTimer(xid);
     return true;
   }
 
@@ -99,7 +100,7 @@ public class TransactionManager {
     }
     involvedResourceManagers.remove(xid);
     activeTransactions.remove(xid);
-    finishTimer(xid);
+    txTimeManager.finishTimer(xid);
   }
 
   public void checkTransaction(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
@@ -113,7 +114,7 @@ public class TransactionManager {
 
     // A transaction must be initialized with start() before it can handle operations
     checkTransaction(xid);
-    resetTimer(xid);
+    txTimeManager.resetTimer(xid);
 
     // Init resource manager vector
     if (!involvedResourceManagers.containsKey(xid)) {
@@ -127,29 +128,20 @@ public class TransactionManager {
       rm.start(xid);
       involvedResourceManagers.get(xid).add(rm);
     }
-  }
 
-  private void resetTimer(int xid) {
-    Trace.info("TM::resetTimer(" + xid + ") called");
-    // cancel previous TimerTask
-    TimerTask timeout = timeoutTable.get(xid);
-    timeout.cancel();
-
-    // schedule new TimerTask
-    timeout = new Timeout(xid, this);
-    timer.schedule(timeout, TIMEOUT_LENGTH);
-    timeoutTable.put(xid, timeout);
-  }
-
-  private void startTimer(int xid) {
-    Trace.info("TM::startTimer(" + xid + ") called");
-    TimerTask timeout = new Timeout(xid, this);
-    timer.schedule(timeout, TIMEOUT_LENGTH);
-    timeoutTable.put(xid, timeout);
-  }
-
-  private void finishTimer(int xid) {
-    Trace.info("TM::finishTimer(" + xid + ") called");
-    timeoutTable.get(xid).cancel();
+    switch (rm.getName()) {
+      case ("Flight"): {
+        rmTimeManagers.get("Flight").resetTimer(0);
+        break;
+      }
+      case ("Car"): {
+        rmTimeManagers.get("Car").resetTimer(0);
+        break;
+      }
+      case ("Room"): {
+        rmTimeManagers.get("Room").resetTimer(0);
+        break;
+      }
+    }
   }
 }

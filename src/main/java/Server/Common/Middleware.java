@@ -1,5 +1,6 @@
 package Server.Common;
 
+import Server.Utils.*;
 import Server.Interface.*;
 import Server.LockManager.*;
 import java.rmi.RemoteException;
@@ -14,8 +15,10 @@ public class Middleware implements IResourceManager {
   // Transaction Manager
   protected TransactionManager TM;
 
+  public static Hashtable<String, TimeManager> timeManagers = new Hashtable<String, TimeManager>();
+
   public Middleware() throws RemoteException {
-    this.TM = new TransactionManager();
+    this.TM = new TransactionManager(timeManagers);
   }
 
   public Middleware(IResourceManager flightRM, IResourceManager roomRM, IResourceManager carRM)
@@ -23,7 +26,7 @@ public class Middleware implements IResourceManager {
     this.flightRM = flightRM;
     this.carRM = carRM;
     this.roomRM = roomRM;
-    this.TM = new TransactionManager();
+    this.TM = new TransactionManager(timeManagers);
   }
 
   // dummy method

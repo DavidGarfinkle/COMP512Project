@@ -2,6 +2,7 @@ package Client;
 
 import Server.Interface.*;
 import Server.LockManager.*;
+import Server.Utils.*;
 
 import java.util.*;
 import java.io.*;
@@ -13,6 +14,7 @@ import java.rmi.UnmarshalException;
 public abstract class Client
 {
 	IResourceManager m_resourceManager = null;
+	TimeManager timeManager;
 
 	public Client()
 	{
@@ -28,6 +30,7 @@ public abstract class Client
 		System.out.println("Location \"help\" for list of supported commands");
 
 		BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+		timeManager.startTimer(0);
 
 		while (true)
 		{
@@ -51,6 +54,7 @@ public abstract class Client
 					execute(cmd, arguments);
 				}
 				catch (ConnectException e) {
+					timeManager.finishTimer(0);
 					connectServer();
 					execute(cmd, arguments);
 				}
@@ -74,6 +78,7 @@ public abstract class Client
 	public void execute(Command cmd, Vector<String> arguments)
 			throws RemoteException, NumberFormatException, TransactionAbortedException, InvalidTransactionException, DeadlockException
 	{
+		timeManager.resetTimer(0);
 		switch (cmd)
 		{
 			case Help:
