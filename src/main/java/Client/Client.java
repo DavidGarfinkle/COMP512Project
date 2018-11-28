@@ -467,6 +467,33 @@ public abstract class Client
 				}
 				break;
 			}
+			case CrashMiddleware: {
+				checkArgumentsCount(2, arguments.size());
+				int mode = Integer.parseInt(arguments.elementAt(1));
+				System.out.println("CrashMiddleware with mode	" + mode);
+				try {
+					m_resourceManager.crashMiddleware(mode);
+					System.out.println("Middleware/TransactionManager Crash Initiated");
+				} catch (Exception e) {
+					System.out.println("Crash could not be Initiated, " + e);
+				}
+				break;
+
+			}
+			case CrashResourceManager: {
+				checkArgumentsCount(3, arguments.size());
+				String rm = arguments.elementAt(1);
+				int mode = Integer.parseInt(arguments.elementAt(2));
+				System.out.println("Crash:	" + rm + " with mode:	" + mode);
+				try {
+					m_resourceManager.crashResourceManager(rm,mode);
+					System.out.println("ResourceManager Crash Initiated");
+				} catch (Exception e) {
+					System.out.println("Crash could not be Initiated, " + e);
+				}
+				break;
+
+			}
 			case Quit:
 				checkArgumentsCount(1, arguments.size());
 

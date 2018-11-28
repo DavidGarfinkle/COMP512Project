@@ -67,6 +67,27 @@ public interface IResourceManager extends Remote
      * @return Success
      */
     public void abort(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException;
+
+    /**
+     * Crash Middleware/Transaction manager.
+     *
+     * @return Success
+     */
+    public void crashMiddleware(int mode) throws RemoteException, TransactionAbortedException, InvalidTransactionException;
+
+    /**
+     * Crash ResourceManager.
+     *
+     * @return Success
+     */
+    public void crashResourceManager(String rm, int mode) throws RemoteException, TransactionAbortedException, InvalidTransactionException;
+
+    /**
+     * Crash ResourceManager for mode 3.
+     *
+     * @return Success
+     */
+    public void crash(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException;
     
     /**
      * Add seats to a flight.

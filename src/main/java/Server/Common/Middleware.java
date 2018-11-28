@@ -65,6 +65,45 @@ public class Middleware implements IResourceManager {
 		TM.abort(xid);
   }
 
+  public void crashMiddleware(int mode) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+    Trace.info("MW::Middleware/TransactionManager crash called");
+
+    TM.crash(mode);
+  }
+
+  public void crashResourceManager(String rm ,int mode) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+    Trace.info("MW::ResourceManager crash called");
+
+    if(rm.equalsIgnoreCase("F")){
+      if (mode == 3){
+        TM.crashResourceManager(rm,mode);
+      }
+      else{
+        flightRM.crashResourceManager(rm,mode);
+      }
+    }
+    else if (rm.equalsIgnoreCase("C")){
+      if (mode == 3){
+        TM.crashResourceManager(rm,mode);
+      }
+      else{
+        carRM.crashResourceManager(rm,mode);
+      }
+    }
+    else if (rm.equalsIgnoreCase("R")){
+      if (mode == 3){
+        TM.crashResourceManager(rm,mode);
+      }
+      else{
+        roomRM.crashResourceManager(rm,mode);
+      }
+    } 
+  }
+
+  // dummy method
+  public void crash(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException{
+  }
+
   public boolean addFlight(int xid, int flightnumber, int flightSeats, int flightPrice)
       throws RemoteException, TransactionAbortedException, InvalidTransactionException, DeadlockException {
     Trace.info("MW::addFlight(" + xid + ", " + flightnumber + ", " + flightSeats + ", $"
@@ -166,7 +205,11 @@ public class Middleware implements IResourceManager {
     TM.processTransaction(xid, carRM);
     TM.processTransaction(xid, flightRM);
     TM.processTransaction(xid, roomRM);
-    return "Flight bill: \n" + flightRM.queryCustomerInfo(xid, cid) + "\nRoom bill: \n" + roomRM.queryCustomerInfo(xid, cid) + "\nCar bill: \n" + carRM.queryCustomerInfo(xid, cid);
+		String s = "Bill for customer " + cid + ";";
+    s += flightRM.queryCustomerInfo(xid, cid);
+    s += roomRM.queryCustomerInfo(xid, cid);
+    s += carRM.queryCustomerInfo(xid, cid);
+    return s;
   }
 
   public int queryFlightPrice(int xid, int flightNumber)
