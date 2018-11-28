@@ -1,12 +1,9 @@
 package Server.Utils;
 
-import Server.Interface.IResourceManager;
 import Server.LockManager.*;
 import Server.RMI.RMIMiddleware;
 import Client.*;
-import java.util.Date;
 import java.util.TimerTask;
-import java.util.*;
 
 public class Timeout extends TimerTask{
 
@@ -33,16 +30,16 @@ public class Timeout extends TimerTask{
   public void run() {
     try {
       if (TM != null) {
-        System.out.println("TM::client --- xid " + xid + " timed out!");
+        System.out.println("TransactionManager---Transaction(" + xid + ") timed out! Aborting Transaction");
         TM.abort(xid);
       }
       if (MW != null) {
-        System.out.println("MW::resourceManager ---"  + rmName + " timed out!");
+        System.out.println("Middleware---RM:(" + rmName + ") timed out! Reconnecting to RM");
         MW.reconnectServer(rmName);
       }
       if (C != null) {
-        System.out.println("Client::middleware --- timed out!");
-        C.connectServer();
+        System.out.println("Client---Middleware timed out! Reconnecting to Middleware");
+        C.reconnectServer();
       }
     } catch (Exception e) {
       System.out.println(e);
