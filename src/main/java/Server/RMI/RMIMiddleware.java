@@ -4,9 +4,12 @@ import java.rmi.RemoteException;
 import java.rmi.NotBoundException;
 import Server.Interface.*;
 import Server.Common.*;
+import Server.Utils.*;
 import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
+
+import java.util.*;
 
 public class RMIMiddleware extends Middleware {
 
@@ -23,6 +26,7 @@ public class RMIMiddleware extends Middleware {
 	private static String s_carServer = "localhost";
 	private static String s_roomServer = "localhost";
 
+	private static int TIMEOUT_LENGTH = 120000;
 	public static void main(String args[]) {
 
 		if (args.length > 2) {
@@ -36,7 +40,6 @@ public class RMIMiddleware extends Middleware {
 				// Create a new Server object that routes to four RMs
 				RMIMiddleware middleware = new RMIMiddleware();
 				middleware.connectServers();
-
 				// Dynamically generate the stub (client proxy)
 				IResourceManager middlewareEndpoint =
 						(IResourceManager) UnicastRemoteObject.exportObject(middleware, 0);
@@ -50,22 +53,11 @@ public class RMIMiddleware extends Middleware {
 					l_registry = LocateRegistry.getRegistry(s_serverPort);
 				}
 				final Registry registry = l_registry;
-				//registry.rebind(s_rmiPrefix + s_flightServerName, middlewareEndpoint);
-				//registry.rebind(s_rmiPrefix + s_carServerName, middlewareEndpoint);
-				//registry.rebind(s_rmiPrefix + s_roomServerName, middlewareEndpoint);
 				registry.rebind(s_rmiPrefix + s_middlewareName, middlewareEndpoint);
 
 				Runtime.getRuntime().addShutdownHook(new Thread() {
 					public void run() {
 						try {
-              /*
-							registry.unbind(s_rmiPrefix + s_flightServerName);
-							System.out.println("'" + s_flightServerName + "' resource manager unbound");
-							registry.unbind(s_rmiPrefix + s_carServerName);
-							System.out.println("'" + s_carServerName + "' resource manager unbound");
-							registry.unbind(s_rmiPrefix + s_roomServerName);
-							System.out.println("'" + s_roomServerName + "' resource manager unbound");
-              */
       				registry.unbind(s_rmiPrefix + s_middlewareName);
 							System.out.println("'" + s_middlewareName + "' middlware unbound");
 						} catch (Exception e) {
@@ -75,15 +67,6 @@ public class RMIMiddleware extends Middleware {
 						}
 					}
 				});
-        /*
-				System.out
-						.println("'" + s_flightServerName + "' resource manager server ready and bound to '"
-								+ s_rmiPrefix + s_flightServerName + "'");
-				System.out.println("'" + s_carServerName + "' resource manager server ready and bound to '"
-						+ s_rmiPrefix + s_carServerName + "'");
-				System.out.println("'" + s_roomServerName + "' resource manager server ready and bound to '"
-						+ s_rmiPrefix + s_roomServerName + "'");
-        */
 				System.out.println("'" + s_middlewareName + "' middlware server ready and bound to '"
             + s_rmiPrefix + s_middlewareName + "'");
 			} catch (Exception e) {
@@ -102,8 +85,28 @@ public class RMIMiddleware extends Middleware {
 
 	public void connectServers() {
 		connectServer(s_flightServer, s_serverPort, s_flightServerName);
+		timeManagers.get("Flight").startTimer(0);
 		connectServer(s_carServer, s_serverPort, s_carServerName);
+		timeManagers.get("Car").startTimer(0);
 		connectServer(s_roomServer, s_serverPort, s_roomServerName);
+		timeManagers.get("Room").startTimer(0);
+	}
+
+	public void reconnectServer(String server) {
+		switch(server) {
+			case ("Flight"): {
+				connectServer(s_flightServer, s_serverPort, s_flightServerName);
+				break;
+			}
+			case ("Car"): {
+				connectServer(s_carServer, s_serverPort, s_carServerName);
+				break;
+			}
+			case ("Room"): {
+				connectServer(s_roomServer, s_serverPort, s_roomServerName);
+				break;
+			}
+		}
 	}
 
 	public void connectServer(String server, int port, String name) {
@@ -142,5 +145,8 @@ public class RMIMiddleware extends Middleware {
 	public RMIMiddleware() throws RemoteException
 	{
 		super();
+		timeManagers.put("Flight", new TimeManager(TIMEOUT_LENGTH, this, "Flight"));
+		timeManagers.put("Room", new TimeManager(TIMEOUT_LENGTH, this, "Room"));
+		timeManagers.put("Car", new TimeManager(TIMEOUT_LENGTH, this, "Car"));
 	}
 }

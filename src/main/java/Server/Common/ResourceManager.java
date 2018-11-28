@@ -10,7 +10,6 @@ import java.rmi.RemoteException;
 import Server.Interface.*;
 import Server.LockManager.*;
 
-import java.io.*;
 import java.util.*;
 
 public class ResourceManager implements IResourceManager
@@ -31,14 +30,18 @@ public class ResourceManager implements IResourceManager
 		m_name = p_name;
 		m_lock = new LockManager(p_name);
 		readWrite = new ReadWrite(rootPath);
-		try {
-			m_data = readWrite.readObject(masterRecordPath);
-			Trace.info("RM::readObject(" + rootPath + masterRecordPath + ") called--");
-		} catch (Exception e) {
-			Trace.warn("RM::readObject(" + rootPath + masterRecordPath + ") failed--"+ e);
+
+		// Read masterRecord from disk. readObject will return null if record does not exist
+		masterRecord = (MasterRecord)readWrite.readObject(masterRecordPath);
+
+		if (masterRecord == null) {
+			// Create new masterRecord starting from transaction 0
+			masterRecord = new MasterRecord();
+		} else {
+			// Read HashMap from masterRecord's latest commit path into m_data
+			m_data = (RMHashMap)readWrite.readObject(masterRecord.getPath());
 		}
 	}
-
 
 	// Reads a data item
 	protected RMItem readData(int xid, String key) throws DeadlockException
@@ -174,12 +177,9 @@ public class ResourceManager implements IResourceManager
 			}
 		});
 
-		/* Testing writing */
-		// should be localRecordpath
-		readWrite.writeObject(m_data, masterRecordPath);
+		// Write m_data associated with xid to record_${xid}.txt
+		readWrite.writeObject(m_data, "record_" + xid + ".txt");
 		Trace.info("RM-" + m_name + "::txn(" + xid + ") wrote to local file --- ready to commit");
-		/* Testing writing */
-
 
 		m_lock.UnlockAll(xid);
 		return true;
@@ -187,7 +187,10 @@ public class ResourceManager implements IResourceManager
 
 	// make changes (commit) to master record (global commit)
 	public boolean doCommit(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException{
-		readWrite.writeObject(m_data, masterRecordPath);
+		// Change masterRecord's latest commit to xid, point masterRecord's latest path to record_${xid}.txt
+		masterRecord.set(xid, "record_" + xid + ".txt");
+		// Write masterRecord to disk
+		readWrite.writeObject(masterRecord, masterRecordPath);
 		return true;
 	}
 
