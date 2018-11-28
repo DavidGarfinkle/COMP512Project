@@ -26,7 +26,7 @@ public class RMIMiddleware extends Middleware {
 	private static String s_carServer = "localhost";
 	private static String s_roomServer = "localhost";
 
-	private static int TIMEOUT_LENGTH = 5000;
+	private static int TIMEOUT_LENGTH = 60000;
 	public static void main(String args[]) {
 
 		if (args.length > 2) {

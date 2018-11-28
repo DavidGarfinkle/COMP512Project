@@ -67,12 +67,20 @@ public class Middleware implements IResourceManager {
     TM.crash(mode);
   }
 
-  public void crashResourceManager(int mode) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+  public void crashResourceManager(String rm ,int mode) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info("MW::ResourceManager crash called");
 
-    flightRM.crashResourceManager(mode);
-    carRM.crashResourceManager(mode);
-    roomRM.crashResourceManager(mode);
+    if(rm.equalsIgnoreCase("F")){
+      flightRM.crashResourceManager(rm,mode);
+    }
+    else if (rm.equalsIgnoreCase("C")){
+      carRM.crashResourceManager(rm,mode);
+    }
+    else if (rm.equalsIgnoreCase("R")){
+      roomRM.crashResourceManager(rm,mode);
+    }
+    
+    
   }
 
   public boolean addFlight(int xid, int flightnumber, int flightSeats, int flightPrice)

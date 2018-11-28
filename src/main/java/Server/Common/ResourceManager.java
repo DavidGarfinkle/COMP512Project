@@ -200,7 +200,7 @@ public class ResourceManager implements IResourceManager
 	public void crashMiddleware(int mode) throws RemoteException, TransactionAbortedException, InvalidTransactionException{
 	}
 
-	public void crashResourceManager(int mode) throws RemoteException, TransactionAbortedException, InvalidTransactionException{
+	public void crashResourceManager(String rm, int mode) throws RemoteException, TransactionAbortedException, InvalidTransactionException{
 		this.mode = mode;
 	}
 
