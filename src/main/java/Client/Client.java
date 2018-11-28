@@ -459,7 +459,20 @@ public abstract class Client
 				System.out.println("CrashMiddleware with mode	" + mode);
 				try {
 					m_resourceManager.crashMiddleware(mode);
-					System.out.println("Crash Initiated");
+					System.out.println("Middleware/TransactionManager Crash Initiated");
+				} catch (Exception e) {
+					System.out.println("Crash could not be Initiated, " + e);
+				}
+				break;
+
+			}
+			case CrashResourceManager: {
+				checkArgumentsCount(2, arguments.size());
+				int mode = Integer.parseInt(arguments.elementAt(1));
+				System.out.println("CrashResourceManager with mode	" + mode);
+				try {
+					m_resourceManager.crashResourceManager(mode);
+					System.out.println("ResourceManager Crash Initiated");
 				} catch (Exception e) {
 					System.out.println("Crash could not be Initiated, " + e);
 				}

@@ -52,35 +52,101 @@ public class TransactionManager {
 		}
 
     Trace.info("TM(" + xid + ")::sending vote request to associated RMs");
-    boolean abort = false;
+
+    // type 1 TM crash (mode = 1)
+    if (this.mode == 1){
+      Trace.info("TM(" + xid + ")::crash mode 1 --- before sending vote requests");
+      System.exit(1);
+    }
+
+    int counter = 0; // needed for crashing
+    // create dictionary for those who voted yes and those who voted no
+    Map<Boolean, ArrayList<String>> dict = new HashMap<Boolean,ArrayList<String>>();
+
+    // sending out voteRequests phase
     for (IResourceManager rm : involvedResourceManagers.get(xid)) {
+      counter +=1;
+      // if mode 3 crash initiated
+      if (this.mode == 3 && counter>1){
+        // at least one vote request was sent
+        Trace.info("TM(" + xid + ")::crash mode 3 --- Crashed after receiving some replies but not all");
+        System.exit(1);
+      }
       try {
         // instead of just telling rm to commit, send a vote request
         if(!rm.voteRequest(xid)){
-          // one of the rms said they couldn't commit, therefore all should abort
-          abort = true;
-          break;
+          // one of the rms said they couldn't commit
+          if (!dict.containsKey(false)){
+            dict.put(false, new ArrayList<String>());
+          }
+          dict.get(false).add(rm.getName());
+        }
+        else{
+          if (!dict.containsKey(true)){
+            dict.put(true, new ArrayList<String>());
+          }
+          dict.get(true).add(rm.getName());
         }
       } catch (Exception e) {
         System.out.println(e);
       }
     }
-    // at this point, all involved rms have been asked if they can commit and they all voted yes
-    if (!abort){
+
+    
+    // crash mode 4 goes here (after sending all voteRequests but before decision phase)
+    if (this.mode == 4){
+      Trace.info("TM(" + xid + ")::crash mode 4 --- Crashed after sending all voteRequests but before decision phase");
+      System.exit(1);
+    }
+
+    // got all votes from involed RMs --> decision phase
+    boolean abort = false;
+    if(dict.containsKey(false)){
+      // someone voted NO
+      System.out.println(dict.get(false) + "voted NO during voteRequest");
+      // therefore, everyone should abort
+      abort = true;
+    }
+
+    // decsion of whether or not to abort or commit is made, need to send it to involved RMs
+    // crash mode 5 goes here
+    if (this.mode == 5){
+      Trace.info("TM(" + xid + ")::crash mode 5 --- Crashed after decision phase but before sending out decision to involvedResourceManagers");
+      System.exit(1);
+    }
+
+    // decison made, now send it to involved RMs
+    if (abort){
+      // everyone should abort
+      abort(xid);
+    }
+    else{
+      // at this point, all involed RMs voted yes to commit, therefore can do global commit
+      counter = 0;
       for (IResourceManager rm : involvedResourceManagers.get(xid)) {
+        counter ++;
+        // if mode 6 crash initiated
+        if (this.mode == 6 && counter>1){
+          // at least one RM recieved decision
+          Trace.info("TM(" + xid + ")::crash mode 6 --- Crashed after sending decision to one but not all involvedResourceManagers");
+          System.exit(1);
+        }
         try {
           rm.doCommit(xid);
         } catch (Exception e) {
           System.out.println(e);
         }
       }
-      involvedResourceManagers.remove(xid);
-      activeTransactions.remove(xid);
-    }
-    else{
-      abort(xid);
     }
 
+    // if mode 7 crash initiated
+    if (this.mode == 7 && counter>1){
+      // at least one RM recieved decision
+      Trace.info("TM(" + xid + ")::crash mode 7 --- Crashed after sending decision to all involvedResourceManagers");
+      System.exit(1);
+    }
+    involvedResourceManagers.remove(xid);
+    activeTransactions.remove(xid);
     finishTimer(xid);
     return true;
   }
@@ -103,8 +169,8 @@ public class TransactionManager {
     finishTimer(xid);
   }
 
-  public void crash(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
-
+  public void crash(int mode) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+    this.mode = mode;
   }
 
   public void checkTransaction(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
