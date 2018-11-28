@@ -21,6 +21,8 @@ public class TransactionManager {
   private static int TIMEOUT_LENGTH = 120000;
   protected TimeManager txTimeManager;
   private int mode;
+  private int crashRmMode;
+  private String crashRm;
 
   public TransactionManager(Hashtable<String, TimeManager> rmTimeManagers) {
     Trace.info("TM::TransactionManager() Constructor");
@@ -90,6 +92,11 @@ public class TransactionManager {
         }
       } catch (Exception e) {
         System.out.println(e);
+      }
+
+      // check if RM crash mode 3 was to be initiated
+      if (this.crashRmMode == 3 && this.crashRm.equals(rm.getName())){
+        rm.crash(xid);
       }
     }
 
@@ -172,6 +179,22 @@ public class TransactionManager {
 
   public void crash(int mode) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     this.mode = mode;
+  }
+
+  // this method is called to initiate rm crash mode = 3
+  public void crashResourceManager(String rm, int mode) throws RemoteException, TransactionAbortedException, InvalidTransactionException{
+    String rm_name = "";
+    if (rm.equalsIgnoreCase("C")){
+      rm_name = "Car";
+    }
+    else if (rm.equalsIgnoreCase("F")){
+      rm_name = "Flight";
+    }
+    else if (rm.equalsIgnoreCase("R")){
+      rm_name = "Room";
+    }
+    this.crashRm = rm_name;
+    this.crashRmMode = mode;
   }
 
   public void checkTransaction(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {

@@ -158,7 +158,16 @@ public class ResourceManager implements IResourceManager
 		}
 		catch(Exception e){
 			System.out.println(e);
+			if(this.mode == 2){
+				Trace.info("RM-" + xid + "::crash mode 2 --- Not sure what happens here");
+        		System.exit(1);
+			}
 			return false;
+		}
+
+		if(this.mode == 2){
+			Trace.info("RM-" + xid + "::crash mode 2 --- Crashed after deciding which decision to send (YES)");
+        	System.exit(1);
 		}
 		return true;
 	}
@@ -202,6 +211,12 @@ public class ResourceManager implements IResourceManager
 
 	public void crashResourceManager(String rm, int mode) throws RemoteException, TransactionAbortedException, InvalidTransactionException{
 		this.mode = mode;
+	}
+
+	// this is for rm crash mode = 3
+	public void crash(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException{
+		Trace.info("RM-" + xid + "::crash mode 3 --- Crashed after sending vote");
+        System.exit(1);
 	}
 
 	public void abort(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
