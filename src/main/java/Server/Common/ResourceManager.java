@@ -21,7 +21,7 @@ public class ResourceManager implements IResourceManager
 	protected LockManager m_lock;
 	protected static ReadWrite readWrite;
 
-	protected static String rootPath = "./";
+	protected static String rootPath = "./records/";
 	protected static String masterRecordPath = "master_record.txt";
 	protected static MasterRecord masterRecord;
 	protected static String newRecordPath = "new_record.txt";

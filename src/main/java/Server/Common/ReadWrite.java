@@ -4,7 +4,7 @@ import java.io.*;
 
 public class ReadWrite implements Serializable
 {
-	protected String masterRecord = ""; 
+	protected String masterRecord = "";
     private static String PATH = "/";
 
     public ReadWrite(String path) {
