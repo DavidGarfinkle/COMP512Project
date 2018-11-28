@@ -9,6 +9,7 @@ import java.rmi.RemoteException;
 
 import Server.Interface.*;
 import Server.LockManager.*;
+import Server.Common.*;
 
 import java.util.*;
 
@@ -22,6 +23,7 @@ public class ResourceManager implements IResourceManager
 
 	protected static String rootPath = "./";
 	protected static String masterRecordPath = "master_record.txt";
+	protected static MasterRecord masterRecord;
 	protected static String newRecordPath = "new_record.txt";
 	private int mode;
 
