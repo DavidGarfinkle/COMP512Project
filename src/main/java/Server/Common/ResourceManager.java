@@ -24,6 +24,7 @@ public class ResourceManager implements IResourceManager
 	protected static String rootPath = "./";
 	protected static String masterRecordPath = "master_record.txt"; 
 	protected static String newRecordPath = "new_record.txt";
+	private int mode;
 
 	public ResourceManager(String p_name)
 	{
@@ -140,7 +141,11 @@ public class ResourceManager implements IResourceManager
 	// vote req method
 	public boolean voteRequest(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException{
 		try{
-			// commit writes to local file 
+			// commit writes to local file
+			if(this.mode == 1){
+				Trace.info("RM(" + xid + ")::crash mode 1 --- Crashed after receiving voteRequest");
+        		System.exit(1);
+			} 
 			commit(xid);
 		}
 		catch(Exception e){
@@ -185,7 +190,10 @@ public class ResourceManager implements IResourceManager
 	
 	// dummy method
 	public void crashMiddleware(int mode) throws RemoteException, TransactionAbortedException, InvalidTransactionException{
+	}
 
+	public void crashResourceManager(int mode) throws RemoteException, TransactionAbortedException, InvalidTransactionException{
+		this.mode = mode;
 	}
 	
 	public void abort(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {

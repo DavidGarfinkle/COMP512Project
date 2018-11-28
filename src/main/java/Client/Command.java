@@ -31,6 +31,7 @@ public enum Command {
 	Commit("Commit a transaction", "<xid>"),
 	Abort("Abort a transaction", "<xid>"),
 	CrashMiddleware("Crash Middleware/TransactionManager", "<mode>"),
+	CrashResourceManager("Crash Resource Manager", "<mode>"),
 
 	Bundle("Book N flight numbers, and optionally a room and/or car at a location", "<xid>,<CustomerID>,<FlightNumber1>...<FlightNumberN>,<Location>,<Car-Y/N>,<Room-Y/N>"),
 
