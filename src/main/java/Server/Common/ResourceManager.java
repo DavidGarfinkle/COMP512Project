@@ -18,7 +18,7 @@ public class ResourceManager implements IResourceManager
 	protected String m_name = "";
 	protected RMHashMap m_data = new RMHashMap();
 	protected Hashtable<Integer, RMHashMap> m_data_tx = new Hashtable<Integer, RMHashMap>();
-	protected LockManager m_lock = new LockManager();
+	protected LockManager m_lock;
 	protected static ReadWrite readWrite;
 
 	protected static String rootPath = "./";
@@ -29,6 +29,7 @@ public class ResourceManager implements IResourceManager
 	public ResourceManager(String p_name)
 	{
 		m_name = p_name;
+		m_lock = new LockManager(p_name);
 		readWrite = new ReadWrite(rootPath);
 		try {
 			m_data = readWrite.readObject(masterRecordPath);
@@ -49,9 +50,11 @@ public class ResourceManager implements IResourceManager
 					RMItem item;
 					if (m_data_tx.get(xid).containsKey(key)) {
 						// If a changed copy of the item exists, read that copy from uncommited changes
+						Trace.info("RM-" + m_name + "::readData(" + xid + ", " + key + ") FOUND; reading from txid data...");
 						item = m_data_tx.get(xid).get(key);
 					} else {
 						// Else get a clone of item from m_data
+						Trace.info("RM-" + m_name + "::readData(" + xid + ", " + key + ") FOUND; reading from regular data...");
 						item = m_data.get(key);
 					}
 					if (item != null) {
@@ -128,7 +131,7 @@ public class ResourceManager implements IResourceManager
 	}
 
 	public void start(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
-		Trace.info("RM(" + m_name + ")::start(" + xid + ") called");
+		Trace.info("RM-" + m_name + "::start(" + xid + ") called");
 		if (m_data_tx.containsKey(xid)) {
 			throw new InvalidTransactionException(xid, "Cannot start a transaction already underway");
 		}
@@ -143,7 +146,7 @@ public class ResourceManager implements IResourceManager
 		try{
 			// commit writes to local file
 			if(this.mode == 1){
-				Trace.info("RM(" + xid + ")::crash mode 1 --- Crashed after receiving voteRequest");
+				Trace.info("RM-" + xid + "::crash mode 1 --- Crashed after receiving voteRequest");
         		System.exit(1);
 			}
 			commit(xid);
@@ -156,7 +159,7 @@ public class ResourceManager implements IResourceManager
 	}
 
 	public boolean commit(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
-		Trace.info("RM(" + m_name + ")::local commit(" + xid + ") called");
+		Trace.info("RM-" + m_name + "::local commit(" + xid + ") called");
 		if (!m_data_tx.containsKey(xid)) {
 			throw new InvalidTransactionException(xid, m_name + " ResourceManager cannot commit a transaction that has not been initialized");
 		}
@@ -174,7 +177,7 @@ public class ResourceManager implements IResourceManager
 		/* Testing writing */
 		// should be localRecordpath
 		readWrite.writeObject(m_data, masterRecordPath);
-		Trace.info("RM(" + m_name + ")::txn(" + xid + ") wrote to local file --- ready to commit");
+		Trace.info("RM-" + m_name + "::txn(" + xid + ") wrote to local file --- ready to commit");
 		/* Testing writing */
 
 
@@ -197,7 +200,7 @@ public class ResourceManager implements IResourceManager
 	}
 
 	public void abort(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
-		Trace.info("RM(" + m_name + ")::abort(" + xid + ") called");
+		Trace.info("RM-" + m_name + "::abort(" + xid + ") called");
 		if (!m_data_tx.containsKey(xid)){
 			throw new InvalidTransactionException(xid, m_name + "cannot abort a transaction that has not been initialized");
 		}
@@ -443,32 +446,32 @@ public class ResourceManager implements IResourceManager
 	public int newCustomer(int xid)
 			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
-		Trace.info("RM::newCustomer(" + xid + ") called");
+		Trace.info("RM-" + m_name + "::newCustomer(" + xid + ") called");
 		// Generate a globally unique ID for the new customer
 		int cid = Integer.parseInt(String.valueOf(xid) +
 			String.valueOf(Calendar.getInstance().get(Calendar.MILLISECOND)) +
 			String.valueOf(Math.round(Math.random() * 100 + 1)));
 		Customer customer = new Customer(cid);
 		writeData(xid, customer.getKey(), customer);
-		Trace.info("RM::newCustomer(" + cid + ") returns ID=" + cid);
+		Trace.info("RM-" + m_name + "::newCustomer(" + cid + ") returns ID=" + cid);
 		return cid;
 	}
 
 	public boolean newCustomer(int xid, int customerID)
 			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
-		Trace.info("RM::newCustomer(" + xid + ", " + customerID + ") called");
+		Trace.info("RM-" + m_name + "::newCustomer(" + xid + ", " + customerID + ") called");
 		Customer customer = (Customer)readData(xid, Customer.getKey(customerID));
 		if (customer == null)
 		{
 			customer = new Customer(customerID);
 			writeData(xid, customer.getKey(), customer);
-			Trace.info("RM::newCustomer(" + xid + ", " + customerID + ") created a new customer");
+			Trace.info("RM-" + m_name + "::newCustomer(" + xid + ", " + customerID + ") created a new customer");
 			return true;
 		}
 		else
 		{
-			Trace.info("INFO: RM::newCustomer(" + xid + ", " + customerID + ") failed--customer already exists");
+			Trace.info("INFO: RM-" + m_name + "::newCustomer(" + xid + ", " + customerID + ") failed--customer already exists");
 			return false;
 		}
 	}
@@ -476,11 +479,11 @@ public class ResourceManager implements IResourceManager
 	public boolean deleteCustomer(int xid, int customerID)
 			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
-		Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") called");
+		Trace.info("RM-" + m_name + "::deleteCustomer(" + xid + ", " + customerID + ") called");
 		Customer customer = (Customer)readData(xid, Customer.getKey(customerID));
 		if (customer == null)
 		{
-			Trace.warn("RM::deleteCustomer(" + xid + ", " + customerID + ") failed--customer doesn't exist");
+			Trace.warn("RM-" + m_name + "::deleteCustomer(" + xid + ", " + customerID + ") failed--customer doesn't exist");
 			return false;
 		}
 		else

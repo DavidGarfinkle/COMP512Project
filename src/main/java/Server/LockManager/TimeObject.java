@@ -21,11 +21,11 @@ public class TimeObject extends TransactionObject
 	}
 
 	public void resetTime() {
-		curTime = m_date.getTime();
+		this.m_date = new Date();
 	}
 
 	public long getTime()
 	{
-		return curTime;
+		return m_date.getTime();
 	}
 }

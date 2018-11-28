@@ -35,6 +35,15 @@ public class TestCommandsM2 {
       mw = new Middleware(flightRM, roomRM, carRM);
     }
 
+    public void printSeparator(int testNum){
+      System.out.println("\n\n");
+      System.out.println("==========================================");
+      System.out.println("=========   TEST " + String.valueOf(testNum) + "    =============");
+      System.out.println("==========================================");
+      System.out.println("\n\n");
+      System.out.flush();
+    }
+
     @Test
     public void testAll()
         throws RemoteException, TransactionAbortedException, InvalidTransactionException, DeadlockException {
@@ -42,7 +51,7 @@ public class TestCommandsM2 {
       int resultCount;
       String expected, result;
 
-      /*
+      /****************** TEST ONE ******************************
         1. Simple commit
         Start                        # [xid=1]
         AddFlight,1,1,10,10
@@ -57,6 +66,7 @@ public class TestCommandsM2 {
         QueryCustomer,2,1            # [flight-1, room-montreal]
         Commit,2
       */
+      this.printSeparator(1);
 
       txid = mw.start();
       Assertions.assertEquals(true, mw.addFlight(txid, 1, 10, 10));
@@ -75,8 +85,7 @@ public class TestCommandsM2 {
       expected = customerBillTemplate(1, new Integer[]{1, 1}, new String[]{"flight-1", "room-mtl"}, new Integer[]{10, 15});
       mw.commit(txid);
 
-      /***************** END OF ONE **********************/
-
+      /***************** TEST TWO **********************/
       /*
         2. Simple abort
         Start                        # [xid=3]
@@ -94,6 +103,7 @@ public class TestCommandsM2 {
         QueryCustomer,4,2            # []
         Commit,4
       */
+      this.printSeparator(2);
 
       txid = mw.start();
 
@@ -114,7 +124,7 @@ public class TestCommandsM2 {
 
       mw.abort(txid);
 
-      /**************** END OF TWO ************************/
+      /**************** TEST THREE ************************/
 
       /*
         3. Customer lock
@@ -124,6 +134,7 @@ public class TestCommandsM2 {
         QueryCustomer,6,1            # Blocked, timeout
         Abort,5
       */
+      this.printSeparator(3);
 
       txid = mw.start();
       txidTwo = mw.start();
@@ -131,9 +142,9 @@ public class TestCommandsM2 {
       mw.reserveFlight(txid, 1, 1);
       result = mw.queryCustomerInfo(txidTwo, 1); // TODO how to test for timeout?
 
-      mw.abort(5);
+      mw.abort(txid);
 
-      /********************* END OF THREE ************************/
+      /********************* TEST FOUR ************************/
 
       /*
         4. Lock conversion
@@ -142,6 +153,7 @@ public class TestCommandsM2 {
         AddRooms,7,Montreal,5,5      # Succeeds
         Abort,7
       */
+      this.printSeparator(4);
 
       txid = mw.start();
       resultCount = mw.queryRooms(txid, "mtl");
@@ -149,7 +161,7 @@ public class TestCommandsM2 {
       Assertions.assertEquals(true, mw.addRooms(txid, "mtl", 5, 5));
       mw.abort(txid);
 
-      /*********************** END OF FOUR ************************/
+      /*********************** TEST FIVE ************************/
 
       /*
         5. Deadlock
@@ -160,6 +172,7 @@ public class TestCommandsM2 {
 
         If * is executed before **, then we expect * to deadlock timeout + abort, and ** to succeed
       */
+      this.printSeparator(5);
 
       txid = mw.start();
       txidTwo = mw.start();
@@ -171,12 +184,22 @@ public class TestCommandsM2 {
       mw.addFlight(txidTwo, 1, 10, 10); // TODO EXPECTED DEADLOCK EXCEPTION
 
 
+      /************************** TEST SIX *********************/
       /*
 6. Time-to-live check
 Start                        # [xid=10]
 AddFlight,10,1,10,10
 ...wait...                   # Timeout at your TTL time, and aborts
 
+      this.printSeparator(6);
+
+      txid = mw.start();
+      mw.addFlight(txid, 1, 10, 10);
+      */
+
+
+      /************************** TEST SEVEN *******************/
+      /*
 7. Bundle atomicity
 Start                        # [xid=11]
 QueryFlight,11,1             # Quantity >= 1
@@ -186,6 +209,12 @@ QueryCustomer,11,1           # [flight-1, room-montreal]
 Bundle,11,1,1,Montreal,1,1   # Fails, and does *not* reserve any flight or room
 QueryCustomer,11,1           # [flight-1, room-montreal]
 Abort,11
+
+      this.printSeparator(7);
+
+      txid = mw.start();
+      
+      */
 
 8(a). Multi-operations for those using an undo-map
 Start                        # [xid=12]

@@ -19,7 +19,7 @@ public class TransactionManager {
   protected static IncrementingInteger xidPicker = new IncrementingInteger();
   protected static Hashtable<Integer, TimerTask> timeoutTable = new Hashtable<Integer, TimerTask>();
   private static Timer timer;
-  private static int TIMEOUT_LENGTH = 120000;
+  private static int TIMEOUT_LENGTH = 3000;
   private int mode;
 
   public TransactionManager() {
@@ -92,7 +92,7 @@ public class TransactionManager {
       }
     }
 
-    
+
     // crash mode 4 goes here (after sending all voteRequests but before decision phase)
     if (this.mode == 4){
       Trace.info("TM(" + xid + ")::crash mode 4 --- Crashed after sending all voteRequests but before decision phase");
