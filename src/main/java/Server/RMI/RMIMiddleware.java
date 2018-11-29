@@ -122,14 +122,17 @@ public class RMIMiddleware extends Middleware {
 					case "Flight": {
 						flightRM =
 							(IResourceManager) registry.lookup(s_rmiPrefix + name);
+            break;
 					}
 					case "Car": {
 						carRM =
 							(IResourceManager) registry.lookup(s_rmiPrefix + name);
+            break;
 					}
 					case "Room": {
 						roomRM =
 							(IResourceManager) registry.lookup(s_rmiPrefix + name);
+            break;
 					}
 				}
 				System.out.println("Connected to '" + name + "' server [" + server + ":" + port

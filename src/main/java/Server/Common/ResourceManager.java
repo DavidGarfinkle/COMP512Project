@@ -226,13 +226,24 @@ public class ResourceManager implements IResourceManager
 					System.exit(1);
 		}
 
+		// delete latest uncommited record from disk
+		if (xid == 1) {
+			m_data = new RMHashMap();
+		} else {
+			m_data = (RMHashMap)readWrite.readObject(masterRecord.getPath());
+		}
+		String fullPath = newRecordPath + xid + ".txt";
+		// Write record_${xid} with previous record, since new changes are aborted
+		readWrite.writeObject(m_data, fullPath);
+		// Write masterRecord to point to latest record, although latest record has no change
+		masterRecord.set(xid, fullPath);
+		readWrite.writeObject(masterRecord, masterRecordPath);
+
 		if (!m_data_tx.containsKey(xid)){
 			throw new InvalidTransactionException(xid, m_name + "cannot abort a transaction that has not been initialized");
 		}
 		m_data_tx.remove(xid);
 		m_lock.UnlockAll(xid);
-		// delete latest uncommited record from disk
-		readWrite.deleteFile(newRecordPath + xid + ".txt");
 	}
 
 	// dummy method

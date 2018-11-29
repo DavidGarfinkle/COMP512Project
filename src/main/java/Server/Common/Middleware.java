@@ -18,7 +18,7 @@ public class Middleware implements IResourceManager {
   public static Hashtable<String, TimeManager> timeManagers = new Hashtable<String, TimeManager>();
 
   public Middleware() throws RemoteException {
-    this.TM = new TransactionManager(timeManagers);
+    this.TM = new TransactionManager(timeManagers, this);
   }
 
   public Middleware(IResourceManager flightRM, IResourceManager roomRM, IResourceManager carRM)
@@ -26,7 +26,7 @@ public class Middleware implements IResourceManager {
     this.flightRM = flightRM;
     this.carRM = carRM;
     this.roomRM = roomRM;
-    this.TM = new TransactionManager(timeManagers);
+    this.TM = new TransactionManager(timeManagers, this);
   }
 
   public boolean checkConnection() throws RemoteException {

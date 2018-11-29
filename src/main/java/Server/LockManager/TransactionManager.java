@@ -15,7 +15,7 @@ public class TransactionManager {
   // protected static RMHashtable involvedResourceManagers = new RMHashtable();
 
   protected static Hashtable<Integer, TransactionObject> activeTransactions = new Hashtable<Integer, TransactionObject>();
-  protected static Hashtable<Integer, Vector<IResourceManager>> involvedResourceManagers = new Hashtable<Integer, Vector<IResourceManager>>();
+  protected static Hashtable<Integer, Vector<String>> involvedResourceManagers = new Hashtable<Integer, Vector<String>>();
   protected static IncrementingInteger xidPicker = new IncrementingInteger();
   protected Hashtable<String, TimeManager> rmTimeManagers;
   private static int TIMEOUT_LENGTH = 120000;
@@ -23,11 +23,13 @@ public class TransactionManager {
   private int mode;
   private int crashRmMode;
   private String crashRm;
+  protected Middleware mw;
 
-  public TransactionManager(Hashtable<String, TimeManager> rmTimeManagers) {
+  public TransactionManager(Hashtable<String, TimeManager> rmTimeManagers, Middleware mw) {
     Trace.info("TM::TransactionManager() Constructor");
     txTimeManager = new TimeManager(TIMEOUT_LENGTH, this);
     this.rmTimeManagers = rmTimeManagers;
+    this.mw = mw;
   }
 
   public int start() throws RemoteException, TransactionAbortedException, InvalidTransactionException {
@@ -54,7 +56,7 @@ public class TransactionManager {
 			throw new InvalidTransactionException(xid, "Transaction manager cannot commit a transaction that has not been initialized");
 		}
 
-    Trace.info("TM(" + xid + ")::sending vote request to associated RMs");
+    Trace.info("TM(" + xid + ")::sending vote requests to associated RMs");
 
     // type 1 TM crash (mode = 1)
     if (this.mode == 1){
@@ -67,7 +69,7 @@ public class TransactionManager {
     Map<Boolean, ArrayList<String>> dict = new HashMap<Boolean,ArrayList<String>>();
 
     // sending out voteRequests phase
-    for (IResourceManager rm : involvedResourceManagers.get(xid)) {
+    for (String rmName : involvedResourceManagers.get(xid)) {
       counter +=1;
       // if mode 3 crash initiated
       if (this.mode == 3 && counter>1){
@@ -75,28 +77,36 @@ public class TransactionManager {
         Trace.info("TM(" + xid + ")::crash mode 3 --- Crashed after receiving some replies but not all");
         System.exit(1);
       }
-      try {
-        // instead of just telling rm to commit, send a vote request
-        if(!rm.voteRequest(xid)){
-          // one of the rms said they couldn't commit
-          if (!dict.containsKey(false)){
-            dict.put(false, new ArrayList<String>());
+      while(true) {
+        try {
+          // instead of just telling rm to commit, send a vote request
+          Thread.sleep(500);
+          if(!getRM(rmName).voteRequest(xid)){
+            // one of the rms said they couldn't commit
+            if (!dict.containsKey(false)){
+              dict.put(false, new ArrayList<String>());
+            }
+            dict.get(false).add(rmName);
           }
-          dict.get(false).add(rm.getName());
-        }
-        else{
-          if (!dict.containsKey(true)){
-            dict.put(true, new ArrayList<String>());
+          else{
+            if (!dict.containsKey(true)){
+              dict.put(true, new ArrayList<String>());
+            }
+            dict.get(true).add(rmName);
           }
-          dict.get(true).add(rm.getName());
+          System.out.println("Received vote request reply from " + rmName);
+          break;
+        } catch (RemoteException re) {
+          System.out.print("\rFailed to send voteRequest, waiting... ");
+        } catch (Exception e) {
+          System.err.println("Unhandled exception: " + e);
+          break;
         }
-      } catch (Exception e) {
-        System.out.println(e);
       }
 
       // check if RM crash mode 3 was to be initiated
-      if (this.crashRmMode == 3 && this.crashRm.equals(rm.getName())){
-        rm.crash(xid);
+      if (this.crashRmMode == 3 && this.crashRm.equals(rmName)){
+        getRM(rmName).crash(xid);
       }
     }
 
@@ -131,7 +141,7 @@ public class TransactionManager {
     else{
       // at this point, all involed RMs voted yes to commit, therefore can do global commit
       counter = 0;
-      for (IResourceManager rm : involvedResourceManagers.get(xid)) {
+      for (String rmName : involvedResourceManagers.get(xid)) {
         counter ++;
         // if mode 6 crash initiated
         if (this.mode == 6 && counter>1){
@@ -140,7 +150,7 @@ public class TransactionManager {
           System.exit(1);
         }
         try {
-          rm.doCommit(xid);
+          getRM(rmName).doCommit(xid);
         } catch (Exception e) {
           System.out.println(e);
         }
@@ -165,9 +175,9 @@ public class TransactionManager {
 			throw new InvalidTransactionException(xid, "Transaction manager cannot abort a transaction that has not been initialized");
 		}
     if (involvedResourceManagers.containsKey(xid)) {
-      for (IResourceManager rm : involvedResourceManagers.get(xid)) {
+      for (String rmName : involvedResourceManagers.get(xid)) {
         try {
-          rm.doAbort(xid);
+          getRM(rmName).doAbort(xid);
         } catch (Exception e) {
           System.out.println(e);
         }
@@ -183,15 +193,15 @@ public class TransactionManager {
   }
 
   // this method is called to initiate rm crash mode = 3
-  public void crashResourceManager(String rm, int mode) throws RemoteException, TransactionAbortedException, InvalidTransactionException{
+  public void crashResourceManager(String rmName, int mode) throws RemoteException, TransactionAbortedException, InvalidTransactionException{
     String rm_name = "";
-    if (rm.equalsIgnoreCase("C")){
+    if (rmName.equalsIgnoreCase("C")){
       rm_name = "Car";
     }
-    else if (rm.equalsIgnoreCase("F")){
+    else if (rmName.equalsIgnoreCase("F")){
       rm_name = "Flight";
     }
-    else if (rm.equalsIgnoreCase("R")){
+    else if (rmName.equalsIgnoreCase("R")){
       rm_name = "Room";
     }
     this.crashRm = rm_name;
@@ -214,19 +224,38 @@ public class TransactionManager {
     // Init resource manager vector
     if (!involvedResourceManagers.containsKey(xid)) {
       Trace.info("TM::processTransaction --- initializing RM vector for tx " + xid);
-      involvedResourceManagers.put(xid, new Vector<IResourceManager>());
+      involvedResourceManagers.put(xid, new Vector<String>());
     }
 
     // If this txi doesn't have this rm, add the rm, and init its tx
-    if (!involvedResourceManagers.get(xid).contains(rm)) {
-      Trace.info("TM::processTransaction --- add & start " + rm.getName() + " to RM vector for tx " + xid);
+    if (!involvedResourceManagers.get(xid).contains(rm.getName())) {
+      Trace.info("TM::processTransaction --- add & start " + rm.getName()  + " to RM vector for tx " + xid);
       rm.start(xid);
-      involvedResourceManagers.get(xid).add(rm);
+      involvedResourceManagers.get(xid).add(rm.getName());
     }
     resetRMTimer(rm.getName());
   }
 
   public void resetRMTimer(String rmName) throws RemoteException {
     rmTimeManagers.get(rmName).resetTimer();
+  }
+
+  public IResourceManager getRM(String rmName) {
+    IResourceManager rm = null;
+    switch(rmName) {
+      case("Flight"):{
+        rm = mw.flightRM;
+        break;
+      }
+      case("Car"):{
+        rm = mw.carRM;
+        break;
+      }
+      case("Room"):{
+        rm = mw.roomRM;
+        break;
+      }
+    }
+    return rm;
   }
 }
