@@ -22,9 +22,9 @@ public class ResourceManager implements IResourceManager
 	protected static ReadWrite readWrite;
 
 	protected static String rootPath = "./records";
-	protected static String masterRecordPath = "masterRecord.txt";
+	protected static String masterRecordPath = "_master_record.txt";
 	protected static MasterRecord masterRecord;
-	protected static String newRecordPath = "new_record.txt";
+	protected static String newRecordPath = "_record_";
 	private int mode;
 
 	public ResourceManager(String p_name)
@@ -32,7 +32,8 @@ public class ResourceManager implements IResourceManager
 		m_name = p_name;
 		m_lock = new LockManager(p_name);
 		readWrite = new ReadWrite(rootPath);
-
+		masterRecordPath = m_name + masterRecordPath;
+		newRecordPath = m_name + newRecordPath;
 		// Read masterRecord from disk. readObject will return null if record does not exist
 		masterRecord = (MasterRecord)readWrite.readObject(masterRecordPath);
 
@@ -196,7 +197,7 @@ public class ResourceManager implements IResourceManager
 		});
 
 		// Write m_data associated with xid to record_${xid}.txt
-		readWrite.writeObject(m_data, "record_" + xid + ".txt");
+		readWrite.writeObject(m_data, newRecordPath + xid + ".txt");
 		Trace.info("RM-" + m_name + "::txn(" + xid + ") wrote to local file --- ready to commit");
 
 		m_lock.UnlockAll(xid);
@@ -212,7 +213,7 @@ public class ResourceManager implements IResourceManager
 		}
 
 		// Change masterRecord's latest commit to xid, point masterRecord's latest path to record_${xid}.txt
-		masterRecord.set(xid, "record_" + xid + ".txt");
+		masterRecord.set(xid, newRecordPath + xid + ".txt");
 		// Write masterRecord to disk
 		readWrite.writeObject(masterRecord, masterRecordPath);
 		return true;
@@ -231,7 +232,7 @@ public class ResourceManager implements IResourceManager
 		m_data_tx.remove(xid);
 		m_lock.UnlockAll(xid);
 		// delete latest uncommited record from disk
-		readWrite.deleteFile("record_" + xid + ".txt");
+		readWrite.deleteFile(newRecordPath + xid + ".txt");
 	}
 
 	// dummy method
