@@ -1,8 +1,9 @@
 package Server.LockManager;
 
 import java.util.Date;
+import java.io.*;
 
-public class TimeObject extends TransactionObject
+public class TimeObject extends TransactionObject implements Serializable
 {
 	private Date m_date = new Date();
 	private long curTime;
@@ -21,11 +22,11 @@ public class TimeObject extends TransactionObject
 	}
 
 	public void resetTime() {
-		curTime = m_date.getTime();
+		this.m_date = new Date();
 	}
 
 	public long getTime()
 	{
-		return curTime;
+		return m_date.getTime();
 	}
 }

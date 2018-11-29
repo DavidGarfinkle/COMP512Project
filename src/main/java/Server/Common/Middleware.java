@@ -1,5 +1,6 @@
 package Server.Common;
 
+import Server.Utils.*;
 import Server.Interface.*;
 import Server.LockManager.*;
 import java.rmi.RemoteException;
@@ -7,15 +8,17 @@ import java.util.*;
 
 public class Middleware implements IResourceManager {
 
-  protected IResourceManager flightRM;
-  protected IResourceManager carRM;
-  protected IResourceManager roomRM;
+  public IResourceManager flightRM;
+  public IResourceManager carRM;
+  public IResourceManager roomRM;
 
   // Transaction Manager
-  protected TransactionManager TM;
+  public TransactionManager TM;
+
+  public static Hashtable<String, TimeManager> timeManagers = new Hashtable<String, TimeManager>();
 
   public Middleware() throws RemoteException {
-    this.TM = new TransactionManager();
+    this.TM = new TransactionManager(timeManagers, this);
   }
 
   public Middleware(IResourceManager flightRM, IResourceManager roomRM, IResourceManager carRM)
@@ -23,11 +26,28 @@ public class Middleware implements IResourceManager {
     this.flightRM = flightRM;
     this.carRM = carRM;
     this.roomRM = roomRM;
-    this.TM = new TransactionManager();
+    this.TM = new TransactionManager(timeManagers, this);
   }
 
-  // dummy method
-  public void start(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+  public boolean checkConnection() throws RemoteException {
+    return true;
+  }
+
+  public void checkConnection(String rm) throws RemoteException {
+    switch(rm){
+      case("Flight"):{
+        flightRM.checkConnection();
+        break;
+      }
+      case("Car"):{
+        carRM.checkConnection();
+        break;
+      }
+      case("Room"):{
+        roomRM.checkConnection();
+        break;
+      }
+    }
   }
 
   public int start() throws RemoteException, TransactionAbortedException, InvalidTransactionException {
@@ -46,6 +66,41 @@ public class Middleware implements IResourceManager {
     Trace.info("MW::abort called");
 
 		TM.abort(xid);
+  }
+
+  public void crashMiddleware(int mode) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+    Trace.info("MW::Middleware/TransactionManager crash called");
+
+    TM.crash(mode);
+  }
+
+  public void crashResourceManager(String rm ,int mode) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+    Trace.info("MW::ResourceManager crash called");
+
+    if(rm.equalsIgnoreCase("F")){
+      if (mode == 3){
+        TM.crashResourceManager(rm,mode);
+      }
+      else{
+        flightRM.crashResourceManager(rm,mode);
+      }
+    }
+    else if (rm.equalsIgnoreCase("C")){
+      if (mode == 3){
+        TM.crashResourceManager(rm,mode);
+      }
+      else{
+        carRM.crashResourceManager(rm,mode);
+      }
+    }
+    else if (rm.equalsIgnoreCase("R")){
+      if (mode == 3){
+        TM.crashResourceManager(rm,mode);
+      }
+      else{
+        roomRM.crashResourceManager(rm,mode);
+      }
+    }
   }
 
   public boolean addFlight(int xid, int flightnumber, int flightSeats, int flightPrice)
@@ -149,7 +204,11 @@ public class Middleware implements IResourceManager {
     TM.processTransaction(xid, carRM);
     TM.processTransaction(xid, flightRM);
     TM.processTransaction(xid, roomRM);
-    return "Flight bill: \n" + flightRM.queryCustomerInfo(xid, cid) + "\nRoom bill: \n" + roomRM.queryCustomerInfo(xid, cid) + "\nCar bill: \n" + carRM.queryCustomerInfo(xid, cid);
+		String s = "Bill for customer " + cid + ";";
+    s += flightRM.queryCustomerInfo(xid, cid);
+    s += roomRM.queryCustomerInfo(xid, cid);
+    s += carRM.queryCustomerInfo(xid, cid);
+    return s;
   }
 
   public int queryFlightPrice(int xid, int flightNumber)
@@ -227,4 +286,11 @@ public class Middleware implements IResourceManager {
   public String getName() throws RemoteException {
     return null;
   }
+
+  // dummy methods
+  public void start(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {}
+  public boolean voteRequest(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {return true;}
+  public void crash(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException{}
+  public boolean doCommit(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {return true;}
+  public void doAbort(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {}
 }

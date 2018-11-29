@@ -9,6 +9,7 @@ import java.rmi.RemoteException;
 
 import Server.Interface.*;
 import Server.LockManager.*;
+import Server.Common.*;
 
 import java.util.*;
 
@@ -17,11 +18,32 @@ public class ResourceManager implements IResourceManager
 	protected String m_name = "";
 	protected RMHashMap m_data = new RMHashMap();
 	protected Hashtable<Integer, RMHashMap> m_data_tx = new Hashtable<Integer, RMHashMap>();
-	protected LockManager m_lock = new LockManager();
+	protected LockManager m_lock;
+	protected static ReadWrite readWrite;
+
+	protected static String rootPath = "./records";
+	protected static String masterRecordPath = "_master_record.txt";
+	protected static MasterRecord masterRecord;
+	protected static String newRecordPath = "_record_";
+	private int mode;
 
 	public ResourceManager(String p_name)
 	{
 		m_name = p_name;
+		m_lock = new LockManager(p_name);
+		readWrite = new ReadWrite(rootPath);
+		masterRecordPath = m_name + masterRecordPath;
+		newRecordPath = m_name + newRecordPath;
+		// Read masterRecord from disk. readObject will return null if record does not exist
+		masterRecord = (MasterRecord)readWrite.readObject(masterRecordPath);
+
+		if (masterRecord == null) {
+			// Create new masterRecord starting from transaction 0
+			masterRecord = new MasterRecord();
+		} else {
+			// Read HashMap from masterRecord's latest commit path into m_data
+			m_data = (RMHashMap)readWrite.readObject(masterRecord.getPath());
+		}
 	}
 
 	// Reads a data item
@@ -31,9 +53,16 @@ public class ResourceManager implements IResourceManager
 			if (m_lock.Lock(xid,key,TransactionLockObject.LockType.LOCK_READ)){
 				// if read lock granted
 				synchronized(m_data) {
-					// Get a clone of item from m_data
-					// Always ensure the hashtable has an entry for xid or else commit will throw null pointer
-					RMItem item = m_data.get(key);
+					RMItem item;
+					if (m_data_tx.get(xid).containsKey(key)) {
+						// If a changed copy of the item exists, read that copy from uncommited changes
+						Trace.info("RM-" + m_name + "::readData(" + xid + ", " + key + ") FOUND; reading from txid data...");
+						item = m_data_tx.get(xid).get(key);
+					} else {
+						// Else get a clone of item from m_data
+						Trace.info("RM-" + m_name + "::readData(" + xid + ", " + key + ") FOUND; reading from regular data...");
+						item = m_data.get(key);
+					}
 					if (item != null) {
 						return (RMItem)item.clone();
 					}
@@ -103,12 +132,19 @@ public class ResourceManager implements IResourceManager
 	}
 
 	// dummy method
+	public void checkConnection(String s) throws RemoteException {}
+
+	public boolean checkConnection() throws RemoteException {
+    return true;
+  }
+
+	// dummy method
 	public int start() throws RemoteException, TransactionAbortedException, InvalidTransactionException {
 		return 0;
 	}
 
 	public void start(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
-		Trace.info("RM(" + m_name + ")::start(" + xid + ") called");
+		Trace.info("RM-" + m_name + "::start(" + xid + ") called");
 		if (m_data_tx.containsKey(xid)) {
 			throw new InvalidTransactionException(xid, "Cannot start a transaction already underway");
 		}
@@ -118,8 +154,34 @@ public class ResourceManager implements IResourceManager
 		}
 	}
 
+	// vote req method
+	public boolean voteRequest(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException{
+		try{
+			// commit writes to local file
+			if(this.mode == 1){
+				Trace.info("RM-" + xid + "::crash mode 1 --- Crashed after receiving voteRequest");
+        		System.exit(1);
+			}
+			commit(xid);
+		}
+		catch(Exception e){
+			System.out.println(e);
+			if(this.mode == 2){
+				Trace.info("RM-" + xid + "::crash mode 2 --- Not sure what happens here");
+        		System.exit(1);
+			}
+			return false;
+		}
+
+		if(this.mode == 2){
+			Trace.info("RM-" + xid + "::crash mode 2 --- Crashed after deciding which decision to send (YES)");
+        	System.exit(1);
+		}
+		return true;
+	}
+
 	public boolean commit(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
-		Trace.info("RM(" + m_name + ")::commit(" + xid + ") called");
+		Trace.info("RM-" + m_name + "::local commit(" + xid + ") called");
 		if (!m_data_tx.containsKey(xid)) {
 			throw new InvalidTransactionException(xid, m_name + " ResourceManager cannot commit a transaction that has not been initialized");
 		}
@@ -133,12 +195,73 @@ public class ResourceManager implements IResourceManager
 				m_data.remove(k);
 			}
 		});
+
+		// Write m_data associated with xid to record_${xid}.txt
+		readWrite.writeObject(m_data, newRecordPath + xid + ".txt");
+		Trace.info("RM-" + m_name + "::txn(" + xid + ") wrote to local file --- ready to commit");
+
 		m_lock.UnlockAll(xid);
 		return true;
 	}
 
+	// make changes (commit) to master record (global commit)
+	public boolean doCommit(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException{
+		Trace.info("RM-" + m_name + "::doCommit(" + xid + ") called");
+		if(this.mode == 4){
+			Trace.info("RM-" + xid + "::crash mode 4 --- Crashed after receiving decision to doCommit");
+					System.exit(1);
+		}
+
+		// Change masterRecord's latest commit to xid, point masterRecord's latest path to record_${xid}.txt
+		masterRecord.set(xid, newRecordPath + xid + ".txt");
+		// Write masterRecord to disk
+		readWrite.writeObject(masterRecord, masterRecordPath);
+		return true;
+	}
+
+	public void doAbort(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+		Trace.info("RM-" + m_name + "::doAbort(" + xid + ") called");
+		if(this.mode == 4){
+			Trace.info("RM-" + xid + "::crash mode 4 --- Crashed after receiving decision to doAbort");
+					System.exit(1);
+		}
+
+		// delete latest uncommited record from disk
+		if (xid == 1) {
+			m_data = new RMHashMap();
+		} else {
+			m_data = (RMHashMap)readWrite.readObject(masterRecord.getPath());
+		}
+		String fullPath = newRecordPath + xid + ".txt";
+		// Write record_${xid} with previous record, since new changes are aborted
+		readWrite.writeObject(m_data, fullPath);
+		// Write masterRecord to point to latest record, although latest record has no change
+		masterRecord.set(xid, fullPath);
+		readWrite.writeObject(masterRecord, masterRecordPath);
+
+		if (!m_data_tx.containsKey(xid)){
+			throw new InvalidTransactionException(xid, m_name + "cannot abort a transaction that has not been initialized");
+		}
+		m_data_tx.remove(xid);
+		m_lock.UnlockAll(xid);
+	}
+
+	// dummy method
+	public void crashMiddleware(int mode) throws RemoteException, TransactionAbortedException, InvalidTransactionException{
+	}
+
+	public void crashResourceManager(String rm, int mode) throws RemoteException, TransactionAbortedException, InvalidTransactionException{
+		this.mode = mode;
+	}
+
+	// this is for rm crash mode = 3
+	public void crash(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException{
+		Trace.info("RM-" + xid + "::crash mode 3 --- Crashed after sending vote");
+        System.exit(1);
+	}
+
 	public void abort(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
-		Trace.info("RM(" + m_name + ")::abort(" + xid + ") called");
+		Trace.info("RM-" + m_name + "::abort(" + xid + ") called");
 		if (!m_data_tx.containsKey(xid)){
 			throw new InvalidTransactionException(xid, m_name + "cannot abort a transaction that has not been initialized");
 		}
@@ -384,32 +507,32 @@ public class ResourceManager implements IResourceManager
 	public int newCustomer(int xid)
 			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
-		Trace.info("RM::newCustomer(" + xid + ") called");
+		Trace.info("RM-" + m_name + "::newCustomer(" + xid + ") called");
 		// Generate a globally unique ID for the new customer
 		int cid = Integer.parseInt(String.valueOf(xid) +
 			String.valueOf(Calendar.getInstance().get(Calendar.MILLISECOND)) +
 			String.valueOf(Math.round(Math.random() * 100 + 1)));
 		Customer customer = new Customer(cid);
 		writeData(xid, customer.getKey(), customer);
-		Trace.info("RM::newCustomer(" + cid + ") returns ID=" + cid);
+		Trace.info("RM-" + m_name + "::newCustomer(" + cid + ") returns ID=" + cid);
 		return cid;
 	}
 
 	public boolean newCustomer(int xid, int customerID)
 			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
-		Trace.info("RM::newCustomer(" + xid + ", " + customerID + ") called");
+		Trace.info("RM-" + m_name + "::newCustomer(" + xid + ", " + customerID + ") called");
 		Customer customer = (Customer)readData(xid, Customer.getKey(customerID));
 		if (customer == null)
 		{
 			customer = new Customer(customerID);
 			writeData(xid, customer.getKey(), customer);
-			Trace.info("RM::newCustomer(" + xid + ", " + customerID + ") created a new customer");
+			Trace.info("RM-" + m_name + "::newCustomer(" + xid + ", " + customerID + ") created a new customer");
 			return true;
 		}
 		else
 		{
-			Trace.info("INFO: RM::newCustomer(" + xid + ", " + customerID + ") failed--customer already exists");
+			Trace.info("INFO: RM-" + m_name + "::newCustomer(" + xid + ", " + customerID + ") failed--customer already exists");
 			return false;
 		}
 	}
@@ -417,11 +540,11 @@ public class ResourceManager implements IResourceManager
 	public boolean deleteCustomer(int xid, int customerID)
 			throws RemoteException, TransactionAbortedException, InvalidTransactionException,DeadlockException
 	{
-		Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") called");
+		Trace.info("RM-" + m_name + "::deleteCustomer(" + xid + ", " + customerID + ") called");
 		Customer customer = (Customer)readData(xid, Customer.getKey(customerID));
 		if (customer == null)
 		{
-			Trace.warn("RM::deleteCustomer(" + xid + ", " + customerID + ") failed--customer doesn't exist");
+			Trace.warn("RM-" + m_name + "::deleteCustomer(" + xid + ", " + customerID + ") failed--customer doesn't exist");
 			return false;
 		}
 		else

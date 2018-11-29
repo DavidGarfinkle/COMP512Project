@@ -1,6 +1,7 @@
 package Client;
 
 public enum Command {
+	CheckConnection("Check connection to middleware", ""),
 	Help("List all available commands", "[CommandName]"),
 
 	AddFlight("Add a new flight number", "<xid>,<FlightNumber>,<NumberOfSeats>,<PricePerSeat>"),
@@ -30,6 +31,8 @@ public enum Command {
 	Start("Start a transaction and gets the txid to use from the transaction manager", ""),
 	Commit("Commit a transaction", "<xid>"),
 	Abort("Abort a transaction", "<xid>"),
+	CrashMiddleware("Crash Middleware/TransactionManager", "<mode>"),
+	CrashResourceManager("Crash Resource Manager", "<rm>,<mode>"),
 
 	Bundle("Book N flight numbers, and optionally a room and/or car at a location", "<xid>,<CustomerID>,<FlightNumber1>...<FlightNumberN>,<Location>,<Car-Y/N>,<Room-Y/N>"),
 

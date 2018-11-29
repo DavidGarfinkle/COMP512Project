@@ -1,6 +1,8 @@
 package Server.Utils;
 
-public class IncrementingInteger {
+import java.io.Serializable;
+
+public class IncrementingInteger implements Serializable {
 
   int x;
 

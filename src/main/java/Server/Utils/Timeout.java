@@ -1,13 +1,19 @@
 package Server.Utils;
 
 import Server.LockManager.*;
-import java.util.Date;
+import Server.RMI.RMIMiddleware;
+import Server.Interface.*;
+import Server.Common.*;
+import Client.*;
 import java.util.TimerTask;
 import java.util.*;
 
 public class Timeout extends TimerTask{
 
   TransactionManager TM;
+  RMIMiddleware MW;
+  RMIClient C;
+  String rmName;
   int xid;
 
   public Timeout(int xid, TransactionManager TM) {
@@ -15,12 +21,40 @@ public class Timeout extends TimerTask{
     this.TM = TM;
   }
 
+  public Timeout(RMIMiddleware MW, String rmName) {
+    this.MW = MW;
+    this.rmName = rmName;
+  }
+
+  public Timeout(RMIClient C) {
+    this.C = C;
+  }
   public void run() {
-    System.out.println("Timeout::run() --- xid " + this.xid + " timing out!");
     try {
-      TM.abort(xid);
+      if (TM != null) {
+        Trace.info("TransactionManager---Transaction(" + xid + ") timed out! Aborting Transaction");
+        TM.abort(xid);
+      }
+      if (MW != null) {
+        TransactionManager TM = MW.TM;
+        try {
+          // Trace.info(rmName + " checkConnection() called");
+          MW.checkConnection(rmName);
+          TM.resetRMTimer(rmName);
+          // Trace.info(rmName + " checkConnection() finished");
+        } catch (Exception e) {
+          // Trace.info(rmName + " reconnectServer() called");
+          MW.reconnectServer(rmName);
+          // Trace.info(rmName + " reconnectServer() finished");
+        }
+      }
+      if (C != null) {
+        Vector<String> arguments = new Vector<String>();
+        Command cmd = Command.fromString("CheckConnection");
+        C.execute(cmd, arguments);
+      }
     } catch (Exception e) {
-      System.out.println(e);
+      System.err.println("Exception in Timeout: " + e);
     }
   }
 }

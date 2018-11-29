@@ -14,9 +14,11 @@ public class LockManager
 	private static TPHashTable stampTable = new TPHashTable(LockManager.TABLE_SIZE);
 	private static TPHashTable waitTable = new TPHashTable(LockManager.TABLE_SIZE);
 
-	public LockManager()
+	private String m_rm;
+
+	public LockManager(String rm)
 	{
-		super();
+		m_rm = rm;
 	}
 
 	public boolean Lock(int xid, String data, TransactionLockObject.LockType lockType) throws DeadlockException
@@ -34,7 +36,7 @@ public class LockManager
 			return false;
 		}
 
-		Trace.info("LM::lock(" + xid + ", " + data + ", " + lockType + ") called");
+		Trace.info("LM-" + m_rm + "::lock(" + xid + ", " + data + ", " + lockType + ") called");
 
 		// Two objects in lock table for easy lookup
 		TransactionLockObject xLockObject = new TransactionLockObject(xid, data, lockType);
@@ -78,7 +80,7 @@ public class LockManager
 							this.lockTable.add(xLockObject);
 							this.lockTable.add(dataLockObject);
 
-							Trace.info("LM::lock(" + xid + ", " + data + ", " + lockType + ") granted");
+							Trace.info("LM-" + m_rm + "::lock(" + xid + ", " + data + ", " + lockType + ") granted");
 						}
 					}
 				}
@@ -93,7 +95,7 @@ public class LockManager
 		}
 		catch (RedundantLockRequestException redundantlockrequest) {
 			// Ignore redundant lock requests
-			Trace.info("LM::lock(" + xid + ", " + data + ", " + lockType + ") " + redundantlockrequest.getLocalizedMessage());
+			Trace.info("LM-" + m_rm + "::lock(" + xid + ", " + data + ", " + lockType + ") " + redundantlockrequest.getLocalizedMessage());
 			return true;
 		}
 
@@ -104,6 +106,7 @@ public class LockManager
 	// Remove all locks for this transaction in the lock table
 	public boolean UnlockAll(int xid)
 	{
+		Trace.info("LM-" + m_rm + "::UnlockAll(" + xid + ") called");
 		// If any parameter is invalid, then return false
 		if (xid < 0) {
 			return false;
@@ -123,7 +126,7 @@ public class LockManager
 				xLockObject = (TransactionLockObject)vect.elementAt(i);
 				this.lockTable.remove(xLockObject);
 
-				Trace.info("LM::unlock(" + xid + ", " + xLockObject.getDataName() + ", " + xLockObject.getLockType() + ") unlocked");
+				Trace.info("LM-" + m_rm + "::unlock(" + xid + ", " + xLockObject.getDataName() + ", " + xLockObject.getLockType() + ") unlocked");
 
 				DataLockObject dataLockObject = new DataLockObject(xLockObject.getXId(), xLockObject.getDataName(), xLockObject.getLockType());
 				this.lockTable.remove(dataLockObject);
@@ -209,7 +212,7 @@ public class LockManager
 	// is set.
 	private boolean LockConflict(DataLockObject dataLockObject, BitSet bitset) throws DeadlockException, RedundantLockRequestException
 	{
-		Trace.info("LM::lockConflict(" + dataLockObject.getXId() + ", " + dataLockObject.getDataName() + ")");
+		Trace.info("LM-" + m_rm + "::lockConflict(" + dataLockObject.getXId() + ", " + dataLockObject.getDataName() + ") called");
 		Vector vect = this.lockTable.elements(dataLockObject);
 		int size = vect.size();
 
@@ -241,17 +244,17 @@ public class LockManager
 
 					if(l_dataLockObject.getLockType() == TransactionLockObject.LockType.LOCK_READ){
 						// case (1)
-						Trace.info("LM::lockConflict() --- looping over txns that have lock on:" + dataLockObject.getDataName());
+						Trace.info("LM-" + m_rm + "::lockConflict() --- looping over txns that have lock on:" + dataLockObject.getDataName());
 						for (int j=0;j<size;j++){
 							DataLockObject temp_dataLockObject = (DataLockObject)vect.elementAt(j);
-							Trace.info("xid:	"+temp_dataLockObject.getXId());
+							Trace.info("LM-" + m_rm + "::lockConflict() --- xid:	" + temp_dataLockObject.getXId());
 							if (temp_dataLockObject.getXId() != dataLockObject.getXId()){
-								Trace.info("LM::lockConflict(" + dataLockObject.getXId() + ", " + dataLockObject.getDataName() + ") Want WRITE, someone has READ or WRITE");
+								Trace.info("LM-" + m_rm + "::lockConflict(" + dataLockObject.getXId() + ", " + dataLockObject.getDataName() + ") Want WRITE, someone has READ or WRITE");
 								return true;
 							}
 						}
 
-						Trace.info("LM::lockConflict() --- conversion granted");
+						Trace.info("LM-" + m_rm + "::lockConflict() --- conversion granted");
 						bitset.set(0,true);
 					}
 
@@ -267,7 +270,7 @@ public class LockManager
 				{
 					// Transaction is requesting a READ lock and some other transaction
 					// already has a WRITE lock on it ==> conflict
-					Trace.info("LM::lockConflict(" + dataLockObject.getXId() + ", " + dataLockObject.getDataName() + ") Want READ, someone has WRITE");
+					Trace.info("LM-" + m_rm + "::lockConflict(" + dataLockObject.getXId() + ", " + dataLockObject.getDataName() + ") Want READ, someone has WRITE");
 					return true;
 				}
 			}
@@ -275,7 +278,7 @@ public class LockManager
 			{
 				// Transaction is requesting a WRITE lock and some other transaction has either
 				// a READ or a WRITE lock on it ==> conflict
-				Trace.info("LM::lockConflict(" + dataLockObject.getXId() + ", " + dataLockObject.getDataName() + ") Want WRITE, someone has READ or WRITE");
+				Trace.info("LM-" + m_rm + "::lockConflict(" + dataLockObject.getXId() + ", " + dataLockObject.getDataName() + ") Want WRITE, someone has READ or WRITE");
 				return true;
 			}
 		}
@@ -287,7 +290,7 @@ public class LockManager
 
 	private void WaitLock(DataLockObject dataLockObject) throws DeadlockException
 	{
-		Trace.info("LM::waitLock(" + dataLockObject.getXId() + ", " + dataLockObject.getDataName() + ", " + dataLockObject.getLockType() + ") called");
+		Trace.info("LM-" + m_rm + "::waitLock(" + dataLockObject.getXId() + ", " + dataLockObject.getDataName() + ", " + dataLockObject.getLockType() + ") called");
 
 		// Check timestamp or add a new one.
 		//
@@ -356,7 +359,7 @@ public class LockManager
 	// CleanupDeadlock cleans up stampTable and waitTable, and throws DeadlockException
 	private void cleanupDeadlock(TimeObject timeObject, WaitLockObject waitLockObject) throws DeadlockException
 	{
-		Trace.info("LM::deadlock(" + waitLockObject.getXId() + ", " + waitLockObject.getDataName() + ", " + waitLockObject.getLockType() + ") called");
+		Trace.info("LM-" + m_rm + "::deadlock(" + waitLockObject.getXId() + ", " + waitLockObject.getDataName() + ", " + waitLockObject.getLockType() + ") called");
 		synchronized (this.stampTable) {
 			synchronized (this.waitTable) {
 				this.stampTable.remove(timeObject);

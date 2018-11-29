@@ -24,6 +24,15 @@ import java.util.*;
 
 public interface IResourceManager extends Remote
 {
+     /**
+     * Start a new transaction by sending a request to middleware and transaction manager
+     *
+     * @return The transaction number of the new started transaction, or -1 if failed
+     */
+    public boolean checkConnection() throws RemoteException;
+
+    public void checkConnection(String rm) throws RemoteException;
+
     public int start() throws RemoteException, TransactionAbortedException, InvalidTransactionException;
 
     /**
@@ -32,7 +41,7 @@ public interface IResourceManager extends Remote
      * @return The transaction number of the new started transaction, or -1 if failed
      */
     public void start(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException;
-    
+
     /**
      * Commit the current transaction.
      *
@@ -41,12 +50,49 @@ public interface IResourceManager extends Remote
     public boolean commit(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException;
 
     /**
+     * Vote request from TM to see if a rm can commit.
+     *
+     * @return Success
+     */
+    public boolean voteRequest(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException;
+
+    /**
+     * Vote request from TM to see if a rm can commit.
+     *
+     * @return Success
+     */
+    public boolean doCommit(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException;
+
+    public void doAbort(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException;
+
+    /**
      * Abort the current transaction.
      *
      * @return Success
      */
     public void abort(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException;
-    
+
+    /**
+     * Crash Middleware/Transaction manager.
+     *
+     * @return Success
+     */
+    public void crashMiddleware(int mode) throws RemoteException, TransactionAbortedException, InvalidTransactionException;
+
+    /**
+     * Crash ResourceManager.
+     *
+     * @return Success
+     */
+    public void crashResourceManager(String rm, int mode) throws RemoteException, TransactionAbortedException, InvalidTransactionException;
+
+    /**
+     * Crash ResourceManager for mode 3.
+     *
+     * @return Success
+     */
+    public void crash(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException;
+
     /**
      * Add seats to a flight.
      *

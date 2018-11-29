@@ -1,14 +1,12 @@
 package Client;
 
 import Server.Interface.*;
+import Server.Utils.*;
 
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.RemoteException;
 import java.rmi.NotBoundException;
-
-import java.util.*;
-import java.io.*;
 
 public class RMIClient extends Client
 {
@@ -18,6 +16,7 @@ public class RMIClient extends Client
 
 	private static String s_rmiPrefix = "group28";
 
+	private static int TIMEOUT_LENGTH = 1000;
 	public static void main(String args[])
 	{
 		if (args.length > 0)
@@ -56,9 +55,15 @@ public class RMIClient extends Client
 	public RMIClient()
 	{
 		super();
+		this.timeManager = new TimeManager(TIMEOUT_LENGTH, this);
 	}
 
 	public void connectServer()
+	{
+		connectServer(s_serverHost, s_serverPort, s_serverName);
+	}
+
+	public void reconnectServer()
 	{
 		connectServer(s_serverHost, s_serverPort, s_serverName);
 	}

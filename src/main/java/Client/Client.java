@@ -2,6 +2,7 @@ package Client;
 
 import Server.Interface.*;
 import Server.LockManager.*;
+import Server.Utils.*;
 
 import java.util.*;
 import java.io.*;
@@ -13,13 +14,14 @@ import java.rmi.UnmarshalException;
 public abstract class Client
 {
 	IResourceManager m_resourceManager = null;
+	TimeManager timeManager;
 
 	public Client()
 	{
 		super();
 	}
 
-	public abstract void connectServer();
+	public abstract void reconnectServer();
 
 	public void start()
 	{
@@ -28,6 +30,7 @@ public abstract class Client
 		System.out.println("Location \"help\" for list of supported commands");
 
 		BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+		timeManager.startTimer();
 
 		while (true)
 		{
@@ -51,7 +54,7 @@ public abstract class Client
 					execute(cmd, arguments);
 				}
 				catch (ConnectException e) {
-					connectServer();
+					reconnectServer();
 					execute(cmd, arguments);
 				}
 			}
@@ -74,8 +77,19 @@ public abstract class Client
 	public void execute(Command cmd, Vector<String> arguments)
 			throws RemoteException, NumberFormatException, TransactionAbortedException, InvalidTransactionException, DeadlockException
 	{
+		timeManager.resetTimer();
 		switch (cmd)
 		{
+			case CheckConnection:
+			{
+				try {
+					m_resourceManager.checkConnection();
+				} catch (RemoteException e) {
+					System.err.println("Client---Middleware connection lost! Reconnecting to Middleware");
+					reconnectServer();
+				}
+				break;
+			}
 			case Help:
 			{
 				if (arguments.size() == 1) {
@@ -452,6 +466,33 @@ public abstract class Client
 					System.out.println("Transaction could not be aborted, " + e);
 				}
 				break;
+			}
+			case CrashMiddleware: {
+				checkArgumentsCount(2, arguments.size());
+				int mode = Integer.parseInt(arguments.elementAt(1));
+				System.out.println("CrashMiddleware with mode	" + mode);
+				try {
+					m_resourceManager.crashMiddleware(mode);
+					System.out.println("Middleware/TransactionManager Crash Initiated");
+				} catch (Exception e) {
+					System.out.println("Crash could not be Initiated, " + e);
+				}
+				break;
+
+			}
+			case CrashResourceManager: {
+				checkArgumentsCount(3, arguments.size());
+				String rm = arguments.elementAt(1);
+				int mode = Integer.parseInt(arguments.elementAt(2));
+				System.out.println("Crash:	" + rm + " with mode:	" + mode);
+				try {
+					m_resourceManager.crashResourceManager(rm,mode);
+					System.out.println("ResourceManager Crash Initiated");
+				} catch (Exception e) {
+					System.out.println("Crash could not be Initiated, " + e);
+				}
+				break;
+
 			}
 			case Quit:
 				checkArgumentsCount(1, arguments.size());
