@@ -9,7 +9,7 @@ import java.util.*;
 
 public class TimeManager {
 
-  protected Hashtable<Integer, TimerTask> timeoutTable = new Hashtable<Integer, TimerTask>();
+  public Hashtable<Integer, TimerTask> timeoutTable = new Hashtable<Integer, TimerTask>();
   private Timer timer;
   private int TIMEOUT_LENGTH;
   TransactionManager TM;

@@ -6,7 +6,7 @@ import java.io.*;
 public class MasterRecord implements Serializable, Cloneable
 {
 	private int xid; 
-  private String path; 
+  private String path;
   public MasterRecord() { 
 		super();
 	}

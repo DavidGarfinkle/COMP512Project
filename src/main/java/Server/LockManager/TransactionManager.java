@@ -25,20 +25,44 @@ public class TransactionManager {
   private String crashRm;
   protected Middleware mw;
 
+  protected static ReadWrite readWrite;
+  protected static String rootPath = "./records";
+	protected static TransactionRecord transactionRecord;
+	protected static String transactionRecordPath = "transaction_record.txt";
+
   public TransactionManager(Hashtable<String, TimeManager> rmTimeManagers, Middleware mw) {
     Trace.info("TM::TransactionManager() Constructor");
     txTimeManager = new TimeManager(TIMEOUT_LENGTH, this);
     this.rmTimeManagers = rmTimeManagers;
     this.mw = mw;
+
+    readWrite = new ReadWrite(rootPath);
+
+		// Read transactionRecord from disk. readObject will return null if record does not exist
+		transactionRecord = (TransactionRecord)readWrite.readObject(transactionRecordPath);
+
+		if (transactionRecord == null) {
+			// Create new masterRecord starting from transaction 0
+			transactionRecord = new TransactionRecord();
+		} else {
+      // Read HashMap from masterRecord's latest commit path into m_data
+      involvedResourceManagers = transactionRecord.getInvolved();
+      involvedResourceManagers = involvedResourceManagers == null ? new Hashtable<Integer, Vector<String>>() : involvedResourceManagers;
+      activeTransactions = transactionRecord.getActive();
+      activeTransactions = activeTransactions == null ? new Hashtable<Integer, TransactionObject>() : activeTransactions;
+      xidPicker = transactionRecord.getPicker(); 
+    }
   }
 
   public int start() throws RemoteException, TransactionAbortedException, InvalidTransactionException {
       Trace.info("TM::start() called");
       int xid = xidPicker.pick();
+      storePicker(xidPicker);
       TimeObject tx = new TimeObject(xid);
 
       if (!activeTransactions.containsKey(xid)){
         activeTransactions.put(xid, tx);
+        storeActive(activeTransactions);
       }
 
       txTimeManager.startTimer(xid);
@@ -164,7 +188,12 @@ public class TransactionManager {
       System.exit(1);
     }
     involvedResourceManagers.remove(xid);
+    storeInvolved(involvedResourceManagers);
     activeTransactions.remove(xid);
+    storeActive(activeTransactions);
+    if (!txTimeManager.timeoutTable.containsKey(xid)){
+      txTimeManager.startTimer(xid);
+    }
     txTimeManager.finishTimer(xid);
     return true;
   }
@@ -184,7 +213,12 @@ public class TransactionManager {
       }
     }
     involvedResourceManagers.remove(xid);
+    storeInvolved(involvedResourceManagers);
     activeTransactions.remove(xid);
+    storeActive(activeTransactions);
+    if (!txTimeManager.timeoutTable.containsKey(xid)){
+      txTimeManager.startTimer(xid);
+    }
     txTimeManager.finishTimer(xid);
   }
 
@@ -219,12 +253,17 @@ public class TransactionManager {
 
     // A transaction must be initialized with start() before it can handle operations
     checkTransaction(xid);
+    if (!txTimeManager.timeoutTable.containsKey(xid)){
+      txTimeManager.startTimer(xid);
+    }
     txTimeManager.resetTimer(xid);
+
 
     // Init resource manager vector
     if (!involvedResourceManagers.containsKey(xid)) {
       Trace.info("TM::processTransaction --- initializing RM vector for tx " + xid);
       involvedResourceManagers.put(xid, new Vector<String>());
+      storeInvolved(involvedResourceManagers);
     }
 
     // If this txi doesn't have this rm, add the rm, and init its tx
@@ -257,5 +296,20 @@ public class TransactionManager {
       }
     }
     return rm;
+  }
+
+  public void storeInvolved(Hashtable<Integer, Vector<String>> involvedResourceManagers) {
+    transactionRecord.setInvolved(involvedResourceManagers);
+    readWrite.writeObject(transactionRecord, transactionRecordPath);
+  }
+
+  public void storeActive(Hashtable<Integer, TransactionObject> activeTransactions) {
+    transactionRecord.setActive(activeTransactions);
+    readWrite.writeObject(transactionRecord, transactionRecordPath);
+  }
+
+  public void storePicker(IncrementingInteger xidPicker) {
+    transactionRecord.setPicker(xidPicker);
+    readWrite.writeObject(transactionRecord, transactionRecordPath);
   }
 }
