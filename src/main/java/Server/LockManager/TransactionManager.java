@@ -164,12 +164,13 @@ public class TransactionManager {
 		if (!activeTransactions.containsKey(xid)){
 			throw new InvalidTransactionException(xid, "Transaction manager cannot abort a transaction that has not been initialized");
 		}
-
-    for (IResourceManager rm : involvedResourceManagers.get(xid)) {
-      try {
-        rm.doAbort(xid);
-      } catch (Exception e) {
-        System.out.println(e);
+    if (involvedResourceManagers.containsKey(xid)) {
+      for (IResourceManager rm : involvedResourceManagers.get(xid)) {
+        try {
+          rm.doAbort(xid);
+        } catch (Exception e) {
+          System.out.println(e);
+        }
       }
     }
     involvedResourceManagers.remove(xid);
