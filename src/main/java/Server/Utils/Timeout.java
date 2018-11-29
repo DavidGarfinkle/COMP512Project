@@ -38,14 +38,14 @@ public class Timeout extends TimerTask{
       if (MW != null) {
         TransactionManager TM = MW.TM;
         try {
-          Trace.info(rmName + " checkConnection() called");
+          // Trace.info(rmName + " checkConnection() called");
           MW.checkConnection(rmName);
           TM.resetRMTimer(rmName);
-          Trace.info(rmName + " checkConnection() finished");
+          // Trace.info(rmName + " checkConnection() finished");
         } catch (Exception e) {
-          Trace.info(rmName + " reconnectServer() called");
+          // Trace.info(rmName + " reconnectServer() called");
           MW.reconnectServer(rmName);
-          Trace.info(rmName + " reconnectServer() finished");
+          // Trace.info(rmName + " reconnectServer() finished");
         }
       }
       if (C != null) {

@@ -132,7 +132,7 @@ public class ResourceManager implements IResourceManager
 
 	// dummy method
 	public void checkConnection(String s) throws RemoteException {}
-	
+
 	public boolean checkConnection() throws RemoteException {
     return true;
   }
@@ -205,11 +205,33 @@ public class ResourceManager implements IResourceManager
 
 	// make changes (commit) to master record (global commit)
 	public boolean doCommit(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException{
+		Trace.info("RM-" + m_name + "::doCommit(" + xid + ") called");
+		if(this.mode == 4){
+			Trace.info("RM-" + xid + "::crash mode 4 --- Crashed after receiving decision to doCommit");
+					System.exit(1);
+		}
+
 		// Change masterRecord's latest commit to xid, point masterRecord's latest path to record_${xid}.txt
 		masterRecord.set(xid, "record_" + xid + ".txt");
 		// Write masterRecord to disk
 		readWrite.writeObject(masterRecord, masterRecordPath);
 		return true;
+	}
+
+	public void doAbort(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
+		Trace.info("RM-" + m_name + "::doAbort(" + xid + ") called");
+		if(this.mode == 4){
+			Trace.info("RM-" + xid + "::crash mode 4 --- Crashed after receiving decision to doAbort");
+					System.exit(1);
+		}
+
+		if (!m_data_tx.containsKey(xid)){
+			throw new InvalidTransactionException(xid, m_name + "cannot abort a transaction that has not been initialized");
+		}
+		m_data_tx.remove(xid);
+		m_lock.UnlockAll(xid);
+		// delete latest uncommited record from disk
+		readWrite.deleteFile("record_" + xid + ".txt");
 	}
 
 	// dummy method

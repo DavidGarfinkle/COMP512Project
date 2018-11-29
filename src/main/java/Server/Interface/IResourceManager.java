@@ -41,7 +41,7 @@ public interface IResourceManager extends Remote
      * @return The transaction number of the new started transaction, or -1 if failed
      */
     public void start(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException;
-    
+
     /**
      * Commit the current transaction.
      *
@@ -62,6 +62,8 @@ public interface IResourceManager extends Remote
      * @return Success
      */
     public boolean doCommit(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException;
+
+    public void doAbort(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException;
 
     /**
      * Abort the current transaction.
@@ -90,7 +92,7 @@ public interface IResourceManager extends Remote
      * @return Success
      */
     public void crash(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException;
-    
+
     /**
      * Add seats to a flight.
      *

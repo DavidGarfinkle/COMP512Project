@@ -32,4 +32,14 @@ public class ReadWrite implements Serializable
             return null;
         }
     }
+
+		public void deleteFile(String subPath) {
+				String fullPath = PATH + "/" + subPath;
+        File file = new File(fullPath);
+        if(file.delete()){
+		        System.out.println(fullPath + " deleted");
+        } else {
+						System.out.println(fullPath + " doesn't exists");
+				}
+		}
 }

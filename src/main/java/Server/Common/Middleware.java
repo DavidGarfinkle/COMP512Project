@@ -50,30 +50,16 @@ public class Middleware implements IResourceManager {
     }
   }
 
-  // dummy method
-  public void start(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
-  }
-
   public int start() throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info("MW::start called");
 
     return TM.start();
-  }
-  
-  // dummy method
-  public boolean voteRequest(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
-    return true;
   }
 
   public boolean commit(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
     Trace.info("MW::commit called");
 
     return TM.commit(xid);
-  }
-
-  // dummy method
-  public boolean doCommit(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
-    return true;
   }
 
   public void abort(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
@@ -114,11 +100,7 @@ public class Middleware implements IResourceManager {
       else{
         roomRM.crashResourceManager(rm,mode);
       }
-    } 
-  }
-
-  // dummy method
-  public void crash(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException{
+    }
   }
 
   public boolean addFlight(int xid, int flightnumber, int flightSeats, int flightPrice)
@@ -304,4 +286,11 @@ public class Middleware implements IResourceManager {
   public String getName() throws RemoteException {
     return null;
   }
+
+  // dummy methods
+  public void start(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {}
+  public boolean voteRequest(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {return true;}
+  public void crash(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException{}
+  public boolean doCommit(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {return true;}
+  public void doAbort(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {}
 }

@@ -167,7 +167,7 @@ public class TransactionManager {
 
     for (IResourceManager rm : involvedResourceManagers.get(xid)) {
       try {
-        rm.abort(xid);
+        rm.doAbort(xid);
       } catch (Exception e) {
         System.out.println(e);
       }
