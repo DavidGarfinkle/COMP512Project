@@ -130,6 +130,9 @@ public class ResourceManager implements IResourceManager
 		}
 	}
 
+	// dummy method
+	public void checkConnection(String s) throws RemoteException {}
+	
 	public boolean checkConnection() throws RemoteException {
     return true;
   }

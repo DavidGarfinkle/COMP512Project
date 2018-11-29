@@ -70,7 +70,7 @@ public class TimeManager {
     timeout = createTimeout(xid);
     timer.schedule(timeout, TIMEOUT_LENGTH);
     timeoutTable.put(xid, timeout);
-    // Trace.info(timerName + "::resetTimer called");
+    Trace.info(timerName + "::resetTimer called");
   }
 
   public void resetTimer() {
@@ -82,30 +82,30 @@ public class TimeManager {
     timeout = createTimeout();
     timer.schedule(timeout, TIMEOUT_LENGTH);
     timeoutTable.put(xid, timeout);
-    // Trace.info(timerName + "::resetTimer called");
+    Trace.info(timerName + "::resetTimer called");
   }
 
   public void startTimer(int xid) {
     TimerTask timeout = createTimeout(xid);
     timer.schedule(timeout, TIMEOUT_LENGTH);
     timeoutTable.put(xid, timeout);
-    // Trace.info(timerName + "::startTimer called");
+    Trace.info(timerName + "::startTimer called");
   }
 
   public void startTimer() {
     TimerTask timeout = createTimeout();
     timer.schedule(timeout, TIMEOUT_LENGTH);
     timeoutTable.put(xid, timeout);
-    // Trace.info(timerName + "::startTimer called");
+    Trace.info(timerName + "::startTimer called");
   }
 
   public void finishTimer(int xid) {
     timeoutTable.get(xid).cancel();
-    // Trace.info(timerName + "::finishTimer called");
+    Trace.info(timerName + "::finishTimer called");
   }
 
   public void finishTimer() {
     timeoutTable.get(xid).cancel();
-    // Trace.info(timerName + "::finishTimer called");
+    Trace.info(timerName + "::finishTimer called");
   }
 }

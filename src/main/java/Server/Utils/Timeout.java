@@ -36,26 +36,11 @@ public class Timeout extends TimerTask{
         TM.abort(xid);
       }
       if (MW != null) {
-        IResourceManager RM = null;
         TransactionManager TM = MW.TM;
         try {
-          switch(rmName) {
-            case("Flight"): {
-              RM = MW.flightRM;
-              break;
-            }
-            case("Car"): {
-              RM = MW.carRM;
-              break;
-            }
-            case("Room"): {
-              RM = MW.roomRM;
-              break;
-            }
-          }
           Trace.info(rmName + " checkConnection() called");
-          RM.checkConnection();
-          TM.resetRMTimer(RM);
+          MW.checkConnection(rmName);
+          TM.resetRMTimer(rmName);
           Trace.info(rmName + " checkConnection() finished");
         } catch (Exception e) {
           Trace.info(rmName + " reconnectServer() called");

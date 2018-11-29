@@ -33,6 +33,23 @@ public class Middleware implements IResourceManager {
     return true;
   }
 
+  public void checkConnection(String rm) throws RemoteException {
+    switch(rm){
+      case("Flight"):{
+        flightRM.checkConnection();
+        break;
+      }
+      case("Car"):{
+        carRM.checkConnection();
+        break;
+      }
+      case("Room"):{
+        roomRM.checkConnection();
+        break;
+      }
+    }
+  }
+
   // dummy method
   public void start(int xid) throws RemoteException, TransactionAbortedException, InvalidTransactionException {
   }

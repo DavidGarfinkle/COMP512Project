@@ -31,6 +31,8 @@ public interface IResourceManager extends Remote
      */
     public boolean checkConnection() throws RemoteException;
 
+    public void checkConnection(String rm) throws RemoteException;
+
     public int start() throws RemoteException, TransactionAbortedException, InvalidTransactionException;
 
     /**
